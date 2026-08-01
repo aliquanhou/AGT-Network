@@ -103,6 +103,9 @@ class AGTNode:
         self._agent_creation_count: int = 0  # v0.2: index for ID derivation
         self.dispatcher = TaskDispatcher()
         self.consensus = ConsensusEngine(node_id=self.node_id)
+        # v0.2: Provide Ed25519 key pair for proof signing
+        if self.identity._key_pair:
+            self.consensus.set_signing_key(self.identity._key_pair)
         self.ledger = IntelligenceLedger(data_dir=data_dir)
         self.api_server = AGTAPIServer(node=self, port=port)
 

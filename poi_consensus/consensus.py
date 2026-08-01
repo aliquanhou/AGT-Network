@@ -59,6 +59,9 @@ class ConsensusEngine:
         self.scorer = PoIScorer()
         self.validator = Validator(node_id=node_id)
 
+        # v0.2: Signing key for proof signatures
+        self._signing_key_pair = None  # KeyPair for signing proofs
+
         # Callbacks
         self._on_proof_generated: Optional[Callable] = None
         self._on_reward: Optional[Callable] = None
@@ -66,6 +69,14 @@ class ConsensusEngine:
         # Stats
         self.proofs_confirmed: int = 0
         self.total_credit_issued: float = 0.0
+
+    def set_signing_key(self, key_pair):
+        """
+        v0.2: Set the Ed25519 key pair used to sign IntelligenceProofs.
+
+        Without a signing key, proofs will be unsigned (v0.1 compatibility mode).
+        """
+        self._signing_key_pair = key_pair
 
     def on_proof_generated(self, callback: Callable):
         """Register callback when an Intelligence Proof is generated"""
@@ -161,6 +172,11 @@ class ConsensusEngine:
             task, validation, agent_id, worker_node_id, result
         )
         score = self.scorer.compute_score(task, validation)
+
+        # v0.2: Sign the proof with the validator's Ed25519 key
+        if self._signing_key_pair:
+            proof.sign(self._signing_key_pair)
+            logger.info(f"[Consensus] Proof {proof.proof_id} signed by validator")
 
         # Step 4: Confirm
         confirmed = score.final_score > 0

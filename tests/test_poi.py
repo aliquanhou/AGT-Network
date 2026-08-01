@@ -192,6 +192,161 @@ class TestIntelligenceProof:
 
 
 # ============================================================
+# v0.2 Signature Tests
+# ============================================================
+
+class TestProofSignatures:
+    @pytest.fixture
+    def key_pair(self):
+        from agt_node.identity import KeyPair
+        return KeyPair.generate()
+
+    def test_sign_proof(self, key_pair):
+        """A proof can be signed and the signature is verifiable"""
+        proof = IntelligenceProof.create(
+            task_id="sig-test-1", task_name="Signature Test",
+            agent_id="agent-a", node_id="node-a",
+            contribution_type="analysis",
+            difficulty=3, quality_score=85,
+            verification_score=80, innovation_score=70,
+        )
+        assert not proof.is_signed()
+
+        proof.sign(key_pair)
+        assert proof.is_signed()
+        assert proof.validator_signature != ""
+        assert proof.validator_public_key_hex == key_pair.public_key_hex
+
+    def test_verify_valid_signature(self, key_pair):
+        """Valid signature passes verification"""
+        proof = IntelligenceProof.create(
+            task_id="sig-2", task_name="Verify Test",
+            agent_id="a1", node_id="n1",
+            contribution_type="code_optimization",
+            difficulty=4, quality_score=90,
+            verification_score=85, innovation_score=75,
+        )
+        proof.sign(key_pair)
+        assert proof.verify_signature()
+
+    def test_verify_detects_tampered_proof(self, key_pair):
+        """Tampering with proof content invalidates signature"""
+        proof = IntelligenceProof.create(
+            task_id="sig-3", task_name="Tamper Test",
+            agent_id="a1", node_id="n1",
+            contribution_type="analysis",
+            difficulty=3, quality_score=80,
+            verification_score=80, innovation_score=70,
+        )
+        proof.sign(key_pair)
+        assert proof.verify_signature()
+
+        # Tamper with the proof
+        proof.quality_score = 10  # Changed!
+        assert not proof.verify_signature()
+
+    def test_verify_detects_wrong_key(self, key_pair):
+        """Signature from wrong key fails verification"""
+        from agt_node.identity import KeyPair
+        other_key = KeyPair.generate()
+
+        proof = IntelligenceProof.create(
+            task_id="sig-4", task_name="Wrong Key Test",
+            agent_id="a1", node_id="n1",
+            contribution_type="analysis",
+            difficulty=3, quality_score=80,
+            verification_score=80, innovation_score=70,
+        )
+        proof.sign(key_pair)  # Signed with key_pair
+
+        # Swap to other key
+        proof.validator_public_key_hex = other_key.public_key_hex
+        assert not proof.verify_signature()
+
+    def test_unsigned_proof_fails_verification(self):
+        """Unsigned proof returns False for verify_signature"""
+        proof = IntelligenceProof.create(
+            task_id="sig-5", task_name="Unsigned",
+            agent_id="a1", node_id="n1",
+            contribution_type="analysis",
+            difficulty=3, quality_score=80,
+            verification_score=80, innovation_score=70,
+        )
+        assert not proof.is_signed()
+        assert not proof.verify_signature()
+
+    def test_signature_survives_serialization(self, key_pair):
+        """Signature is preserved through to_dict/from_dict roundtrip"""
+        proof = IntelligenceProof.create(
+            task_id="sig-6", task_name="Serialize Test",
+            agent_id="a1", node_id="n1",
+            contribution_type="tool_development",
+            difficulty=5, quality_score=92,
+            verification_score=88, innovation_score=80,
+            evidence=[
+                make_evidence("code_commit", "commit abc", "code"),
+                make_evidence("test_result", "all pass", "results"),
+            ],
+            validator_node_id="v-node",
+            validator_agent_id="v-agent",
+            validator_feedback="Excellent work",
+        )
+        proof.sign(key_pair)
+
+        # Serialize + restore
+        data = proof.to_dict()
+        restored = IntelligenceProof.from_dict(data)
+
+        assert restored.is_signed()
+        assert restored.validator_signature == proof.validator_signature
+        assert restored.validator_public_key_hex == proof.validator_public_key_hex
+        assert restored.verify_signature()
+
+    def test_multiple_signatures_different(self, key_pair):
+        """Different proofs produce different signatures"""
+        proof_a = IntelligenceProof.create(
+            task_id="ta", task_name="A",
+            agent_id="a1", node_id="n1",
+            contribution_type="analysis",
+            difficulty=3, quality_score=80,
+            verification_score=80, innovation_score=70,
+        )
+        proof_b = IntelligenceProof.create(
+            task_id="tb", task_name="B",
+            agent_id="a1", node_id="n1",
+            contribution_type="analysis",
+            difficulty=3, quality_score=80,
+            verification_score=80, innovation_score=70,
+        )
+        proof_a.sign(key_pair)
+        proof_b.sign(key_pair)
+        assert proof_a.validator_signature != proof_b.validator_signature  # Different content = different signature
+
+    def test_consensus_engine_signs_proofs(self, key_pair):
+        """ConsensusEngine signs proofs when signing key is set"""
+        import asyncio
+        from poi_consensus.consensus import ConsensusEngine
+
+        engine = ConsensusEngine(node_id="test-node")
+        engine.set_signing_key(key_pair)
+
+        task = get_task_by_id("genesis-001")
+        result = "## Analysis\n" * 10  # Decent result
+
+        async def run():
+            return await engine.process_contribution(
+                task=task, agent_id="a1", worker_node_id="n2",
+                result=result, assignment_id="assign-sig",
+            )
+
+        consensus = asyncio.run(run())
+        if consensus.confirmed:
+            assert consensus.proof.is_signed()
+            assert consensus.proof.verify_signature()
+            assert consensus.proof.validator_public_key_hex == key_pair.public_key_hex
+
+
+# ============================================================
 # Scorer Tests
 # ============================================================
 

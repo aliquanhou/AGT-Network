@@ -141,6 +141,10 @@ class IntelligenceProof:
     validator_agent_id: str = ""
     validator_feedback: str = ""
 
+    # v0.2 Trust Layer: cryptographic signature
+    validator_signature: str = ""  # Ed25519 hex signature of proof_hash
+    validator_public_key_hex: str = ""  # Validator's public key for verification
+
     # Timestamps
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -186,6 +190,8 @@ class IntelligenceProof:
             },
             "created_at": self.created_at,
             "content_hash": self.compute_hash(),
+            "validator_signature": self.validator_signature,
+            "validator_public_key_hex": self.validator_public_key_hex,
         }
 
     def compute_hash(self) -> str:
@@ -202,6 +208,40 @@ class IntelligenceProof:
         }
         serialized = json.dumps(core, sort_keys=True, ensure_ascii=False)
         return hashlib.sha256(serialized.encode()).hexdigest()
+
+    # ============================================================
+    # v0.2 Trust Layer: Cryptographic Signature
+    # ============================================================
+
+    def sign(self, key_pair: "KeyPair"):
+        """
+        Sign this proof with the validator's Ed25519 key pair.
+
+        The signature covers proof_hash, making the proof non-repudiable.
+        After signing, any node can call verify_signature() to check authenticity.
+        """
+        self.validator_signature = key_pair.sign_string(self.compute_hash())
+        self.validator_public_key_hex = key_pair.public_key_hex
+
+    def verify_signature(self) -> bool:
+        """
+        Verify this proof's validator signature.
+
+        Returns True if the signature is valid for the stored public key.
+        Any node can call this to independently verify proof authenticity.
+        """
+        if not self.validator_signature or not self.validator_public_key_hex:
+            return False  # Unsigned proof
+        from agt_node.identity import KeyPair
+        return KeyPair.verify_string(
+            self.validator_public_key_hex,
+            self.compute_hash(),
+            self.validator_signature,
+        )
+
+    def is_signed(self) -> bool:
+        """Check if this proof has been cryptographically signed"""
+        return bool(self.validator_signature and self.validator_public_key_hex)
 
     @classmethod
     def from_dict(cls, data: dict) -> "IntelligenceProof":
@@ -247,6 +287,8 @@ class IntelligenceProof:
             validator_agent_id=validator.get("agent_id", ""),
             validator_feedback=validator.get("feedback", ""),
             created_at=data.get("created_at", ""),
+            validator_signature=data.get("validator_signature", ""),
+            validator_public_key_hex=data.get("validator_public_key_hex", ""),
         )
 
     @classmethod
@@ -267,6 +309,8 @@ class IntelligenceProof:
         validator_node_id: str = "",
         validator_agent_id: str = "",
         validator_feedback: str = "",
+        validator_signature: str = "",
+        validator_public_key_hex: str = "",
     ) -> "IntelligenceProof":
         """Factory: create a complete Intelligence Proof"""
         proof_id = f"poi-{uuid.uuid4().hex[:12]}"
@@ -294,6 +338,8 @@ class IntelligenceProof:
             validator_node_id=validator_node_id,
             validator_agent_id=validator_agent_id,
             validator_feedback=validator_feedback,
+            validator_signature=validator_signature,
+            validator_public_key_hex=validator_public_key_hex,
         )
 
 
