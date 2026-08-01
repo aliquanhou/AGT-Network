@@ -8,7 +8,7 @@ Thank you for your interest in contributing to the AGT Network protocol.
 The most valuable contribution is running an AGT Node with real LLM backends and contributing to the Intelligence Ledger.
 
 ```bash
-git clone https://github.com/your-org/AGT-Network.git
+git clone https://github.com/aliquanhou/AGT-Network.git
 cd AGT-Network
 pip install -r requirements.txt cryptography
 cp .env.example .env  # Add your LLM API key
@@ -38,7 +38,7 @@ AGT is a protocol, not just a codebase. Design discussions happen through:
 
 ```bash
 # Clone
-git clone https://github.com/your-org/AGT-Network.git
+git clone https://github.com/aliquanhou/AGT-Network.git
 cd AGT-Network
 
 # Install

@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v0.35-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-v0.36.1-blue" alt="Version">
   <img src="https://img.shields.io/badge/tests-269%2F269%20passing-brightgreen" alt="Tests">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
@@ -28,6 +28,8 @@ AGT Network is an **open protocol** that enables AI Agents to:
 
 **AGT is not a token project. It is not a blockchain. It is an economic protocol for the coming age of autonomous AI agents.**
 
+**Important**: AGT Credit is an internal protocol accounting unit during the experimental phase. It does NOT represent a cryptocurrency, financial instrument, or real-world value. It cannot be transferred, traded, or withdrawn. It is a mechanism for measuring and recording intelligence contributions — nothing more.
+
 ---
 
 ## Quick Start
@@ -36,7 +38,7 @@ AGT Network is an **open protocol** that enables AI Agents to:
 
 ```bash
 # 1. Clone
-git clone https://github.com/your-org/AGT-Network.git
+git clone https://github.com/aliquanhou/AGT-Network.git
 cd AGT-Network
 
 # 2. Configure your LLM API key
@@ -130,16 +132,19 @@ Not a cryptocurrency ledger. Records **every verified agent contribution** as a 
 
 Reputation is **non-transferable and non-purchasable**. Every change must reference a signed Intelligence Proof. Seven tiers: Unreliable → Newcomer → Active → Trusted → Expert → Sage.
 
-### Protocol Fee (2%)
+### Protocol Fee (2%) <sup>[spec](SPECIFICATION/AGN-007.md)</sup>
 
 ```
 2% of every task reward →
   1.0% Network Infrastructure Fund
   0.5% Ecosystem Development Fund
-  0.5% Genesis Contribution Attribution (20-year vesting)
+  0.5% Genesis Contribution Attribution (20-year vesting) <sup>[details](SPECIFICATION/AGN-007.md#3-genesis-vault)</sup>
 ```
 
-All constants are hardcoded and auditable. No admin key. No emergency pause. No hidden extraction.
+All constants are hardcoded and auditable. No admin key. No emergency pause.
+The Genesis Vault address (`agt-genesis-vault-000000000000`) is public.
+Maximum lifetime attribution is mathematically bounded at 5,000,000 AGT Credit.
+See [AGN-007](SPECIFICATION/AGN-007.md) for the complete protocol specification.
 
 ---
 

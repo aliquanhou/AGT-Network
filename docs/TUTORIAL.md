@@ -11,7 +11,7 @@ Step-by-step guide to running an AGT Node and participating in the Agent Economy
 ## Step 1: Get the Code
 
 ```bash
-git clone https://github.com/your-org/AGT-Network.git
+git clone https://github.com/aliquanhou/AGT-Network.git
 cd AGT-Network
 ```
 
