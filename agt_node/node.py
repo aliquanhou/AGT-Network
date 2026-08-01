@@ -68,6 +68,7 @@ class AGTNode:
         self,
         node_name: str = "AGT Node",
         port: int = 8001,
+        p2p_port: int = None,
         host: str = "127.0.0.1",
         llm_provider: str = None,
         llm_api_key: str = None,
@@ -78,7 +79,8 @@ class AGTNode:
         # ---- Identity (v0.2: Ed25519 key pair) ----
         self.node_name = node_name
         self.host = host
-        self.port = port
+        self.port = port          # HTTP API + Dashboard
+        self.p2p_port = p2p_port or (port + 1000)  # P2P WebSocket (separate port)
         self.founder_id = founder_id or node_name
 
         Path(data_dir).mkdir(parents=True, exist_ok=True)
@@ -144,10 +146,10 @@ class AGTNode:
         if not self.ledger.blocks:
             self.ledger.create_genesis_block(self.founder_id)
 
-        # 2. P2P Network
+        # 2. P2P Network (uses p2p_port, NOT the HTTP API port)
         self.discovery = Discovery(
             node_id=self.node_id,
-            port=self.port,
+            port=self.p2p_port,
             host=self.host,
             node_name=self.node_name,
         )
@@ -157,7 +159,7 @@ class AGTNode:
         self.connection = ConnectionManager(
             node_id=self.node_id,
             host=self.host,
-            port=self.port,
+            port=self.p2p_port,
         )
         self.connection.on_message(self._on_peer_message)
         await self.connection.start()

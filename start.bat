@@ -1,7 +1,7 @@
 @echo off
 title AGT Network Node
 echo.
-echo  ⚡ AGT Network v0.35 — Genesis Testnet
+echo  ⚡ AGT Network v0.36 — Genesis Testnet
 echo  ======================================
 echo.
 
@@ -33,6 +33,7 @@ if not exist .env (
 
 echo  [INFO] Starting AGT Node...
 echo  [INFO] Dashboard: http://localhost:8001
+echo  [INFO] P2P Network: ws://localhost:9001
 echo  [INFO] Press Ctrl+C to stop.
 echo.
 python main.py --port 8001 --host 0.0.0.0

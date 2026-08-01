@@ -44,7 +44,8 @@ Examples:
   python main.py --dual
         """,
     )
-    parser.add_argument("--port", type=int, default=8001, help="Node port (default: 8001)")
+    parser.add_argument("--port", type=int, default=8001, help="HTTP API + Dashboard port (default: 8001)")
+    parser.add_argument("--p2p-port", type=int, default=None, help="P2P WebSocket port (default: port + 1000)")
     parser.add_argument("--node-name", default="AGT Node", help="Node display name")
     parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
     parser.add_argument("--llm-provider", default=None, help="LLM provider: deepseek|openai|claude|ollama")
@@ -65,6 +66,7 @@ async def run_single_node(args):
     node = AGTNode(
         node_name=args.node_name,
         port=args.port,
+        p2p_port=args.p2p_port,
         host=args.host,
         llm_provider=args.llm_provider,
         llm_api_key=args.llm_api_key,
@@ -77,7 +79,8 @@ async def run_single_node(args):
 
     # Start API in background
     api_task = asyncio.create_task(node.api_server.start())
-    print(f"\n  AGT Dashboard: http://{args.host}:{args.port}\n")
+    print(f"\n  AGT Dashboard: http://{args.host}:{args.port}")
+    print(f"  P2P Network:   ws://{args.host}:{node.p2p_port}\n")
 
     if args.run_cycle:
         await node.run_economy_loop(continuous=False)
@@ -106,6 +109,7 @@ async def run_dual_nodes(args):
     node_a = AGTNode(
         node_name="AGT Node A",
         port=8001,
+        p2p_port=9001,
         host="127.0.0.1",
         llm_provider=args.llm_provider,
         llm_api_key=args.llm_api_key,
@@ -117,6 +121,7 @@ async def run_dual_nodes(args):
     node_b = AGTNode(
         node_name="AGT Node B",
         port=8002,
+        p2p_port=9002,
         host="127.0.0.1",
         llm_provider=args.llm_provider,
         llm_api_key=args.llm_api_key,
@@ -127,8 +132,8 @@ async def run_dual_nodes(args):
     await node_a.start()
     await node_b.start()
 
-    # Connect nodes to each other
-    await node_a.connection.connect_to_peer(node_b.node_id, "127.0.0.1", 8002)
+    # Connect nodes to each other via P2P ports
+    await node_a.connection.connect_to_peer(node_b.node_id, "127.0.0.1", 9002)
 
     # Start API servers
     asyncio.create_task(node_a.api_server.start())
@@ -169,6 +174,7 @@ async def run_e2e_test(args):
     node = AGTNode(
         node_name="AGT Test Node",
         port=args.port,
+        p2p_port=args.p2p_port,
         host="127.0.0.1",
         llm_provider=args.llm_provider,
         llm_api_key=args.llm_api_key,
@@ -236,12 +242,12 @@ async def run_e2e_test(args):
     print(f"\n  === Results: {passed}/{total} checks passed ===\n")
 
     for name, ok in checks:
-        print(f"  {'✓' if ok else '✗'} {name}")
+        print(f"  [{'OK' if ok else 'FAIL'}] {name}")
 
     print()
 
     if passed == total:
-        print("  🎉 AGT Genesis Prototype — ALL CHECKS PASSED")
+        print("  *** AGT Genesis Prototype -- ALL CHECKS PASSED ***")
         print("  The first Agent Economy experimental loop is complete!")
     else:
         print(f"  ⚠ {total - passed} check(s) failed")

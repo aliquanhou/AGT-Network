@@ -122,7 +122,7 @@ class Planner:
                 raw=data,
             )
         except (json.JSONDecodeError, ValueError) as e:
-            logger.warning(f"Failed to parse plan JSON: {e}")
+            logger.debug(f"Planner JSON parse fallback (expected without LLM): {e}")
             return self._fallback_plan(goal)
 
     def _fallback_plan(self, goal: str) -> Plan:

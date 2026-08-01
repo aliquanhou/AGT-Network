@@ -6,9 +6,11 @@ services:
     container_name: agt-node-a
     ports:
       - "8001:8001"
+      - "9001:9001"
     environment:
       - AGT_NODE_NAME=AGT Node A
       - AGT_PORT=8001
+      - AGT_P2P_PORT=9001
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
@@ -21,9 +23,11 @@ services:
     container_name: agt-node-b
     ports:
       - "8002:8002"
+      - "9002:9002"
     environment:
       - AGT_NODE_NAME=AGT Node B
       - AGT_PORT=8002
+      - AGT_P2P_PORT=9002
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}

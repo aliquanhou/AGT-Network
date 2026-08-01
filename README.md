@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v0.36.1-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-v0.36.3-blue" alt="Version">
   <img src="https://img.shields.io/badge/tests-269%2F269%20passing-brightgreen" alt="Tests">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
@@ -45,7 +45,7 @@ cd AGT-Network
 cp .env.example .env
 # Edit .env: add DEEPSEEK_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY
 
-# 3. Start
+# 3. Start (no API key? Run smoke test first: python scripts/smoke_test.py)
 python main.py --port 8001
 
 # 4. Open Dashboard
@@ -184,13 +184,13 @@ AGT-Network/
 ├── agt_node/            Node orchestrator + identity
 │   └── autonomous/      v0.3 Autonomous Economy Engine
 ├── agent_runtime/       LLM client + Agent + Tools
-├── p2p_network/         UDP Discovery + WebSocket (→ libp2p v0.5)
+├── p2p_network/         UDP Discovery + WebSocket (port 9001)
 ├── task_engine/         Genesis Tasks + Dispatcher + Validator
 ├── poi_consensus/       Proof of Intelligence + Registry
 ├── impact_oracle/       Impact measurement + Scoring + Epochs
 ├── reward_ledger/       Intelligence Ledger + Protocol Fee
 │   └── economy/         Allocation · Emission · Vesting (stubs)
-├── api_server/          FastAPI REST + WebSocket
+├── api_server/          FastAPI REST + WebSocket (port 8001)
 ├── web_dashboard/       Single-page AGT Console
 ├── sdk/                 External Agent SDK
 ├── genesis-archive/     Protocol history (specs, audits, decisions)
@@ -222,6 +222,9 @@ AGT-Network/
 ```bash
 # Run tests
 python -m pytest tests/ -v
+
+# Smoke test (no API key needed, 16 checks in <1s)
+python scripts/smoke_test.py
 
 # Start node with dual-network simulation
 python main.py --dual

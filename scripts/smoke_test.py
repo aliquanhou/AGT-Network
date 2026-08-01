@@ -79,7 +79,7 @@ async def run_smoke_test(verbose=False):
 
     print()
     print("=" * 64)
-    print("  AGT Network — Smoke Test v0.36")
+    print("  AGT Network — Smoke Test v0.36.2")
     print("  Verifying complete economic loop...")
     print("=" * 64)
     print()

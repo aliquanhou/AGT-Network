@@ -52,7 +52,9 @@ class ConnectionManager:
         """Register message handler: async def handler(peer_id: str, msg: AGTMessage)"""
         self._message_handler = handler
 
-    # ---- lifecycle ----
+    @property
+    def peer_count(self) -> int:
+        return len(self._connections)
 
     async def start(self):
         """Start WebSocket server"""

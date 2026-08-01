@@ -28,6 +28,7 @@ Thumbs.db
 
 # AGT runtime data
 data/*.json
+data/*.jsonl
 data/*.log
 data/*.pem
 data/*.key
