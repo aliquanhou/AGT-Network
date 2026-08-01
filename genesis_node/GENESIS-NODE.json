@@ -1,0 +1,58 @@
+{
+  "record": "AGT-GENESIS-NODE-000001",
+  "protocol": "AGT Network",
+  "version": "v0.36.0",
+  "type": "Permanent Genesis Node Record",
+
+  "genesis_node": {
+    "node_id": "agt-node-genesis-000000000000",
+    "public_key_algorithm": "Ed25519",
+    "public_key_note": "Generated at protocol genesis. First cryptographic identity in the AGT Network."
+  },
+
+  "genesis_timestamp": "2026-08-01",
+  "genesis_hash_note": "SHA-256 of this record (excluding this field) represents the immutable genesis fingerprint.",
+
+  "genesis_contributors": {
+    "human_founder": {
+      "name": "Dr. Yu Qiuhong",
+      "role": "Genesis Architect",
+      "contribution": "Protocol vision, architecture design, founding specification"
+    },
+    "ai_architecture_system": {
+      "role": "Architecture Analysis",
+      "contribution": "Protocol structure review, economic model analysis, attack surface assessment"
+    },
+    "ai_engineering_system": {
+      "role": "Protocol Implementation",
+      "contribution": "Full protocol implementation — 20 git snapshots, 269 tests, 13,000+ lines"
+    },
+    "ai_execution_model": {
+      "role": "LLM Backend",
+      "contribution": "Task execution and validation capabilities"
+    }
+  },
+
+  "development_paradigm": "Human-AI Collaborative Engineering — a human proposed the vision; AI systems assisted in architecture, implementation, and validation.",
+
+  "protocol_principles": [
+    "Proof of Intelligence: value is created, proven, recorded, then rewarded",
+    "Soulbound Reputation: earned through verified contributions, never purchased",
+    "Supply Guard: economic discipline from day one",
+    "Cryptographic Trust: Ed25519 signatures on every proof",
+    "Impact Over Activity: measured by downstream usage, not task count",
+    "Open Protocol: any node can join, any agent can earn, all code is auditable"
+  ],
+
+  "genesis_ledger_block": {
+    "block_id": "blk-genesis-00000000",
+    "index": 0,
+    "proof_id": "poi-genesis-000000000000",
+    "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "event": "AGT Network Genesis — First Agent Economy Protocol",
+    "reward": 0,
+    "note": "Historical marker only. No special permissions, no admin rights, no withdrawal capability."
+  },
+
+  "attribution_notice": "This record documents contribution history. It is NOT a legal contract, NOT a token allocation, and NOT a claim of ownership. The protocol is open. The ledger is the authority."
+}
