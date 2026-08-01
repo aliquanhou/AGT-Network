@@ -30,6 +30,7 @@ from .identity import NodeIdentity, GenesisIdentity
 from .reputation import AgentReputation, ReputationEvent
 from .wallet import CreditWallet
 from .agent_identity import AgentIdentity, CapabilityProfile
+from .anti_sybil import AntiSybil
 
 from p2p_network.discovery import Discovery
 from p2p_network.connection import ConnectionManager
@@ -44,6 +45,7 @@ from task_engine.validator import Validator
 
 from poi_consensus.consensus import ConsensusEngine
 from poi_consensus.intelligence_proof import IntelligenceProof
+from poi_consensus.proof_registry import ProofRegistry
 
 from reward_ledger.ledger import IntelligenceLedger
 
@@ -106,6 +108,8 @@ class AGTNode:
         # v0.2: Provide Ed25519 key pair for proof signing
         if self.identity._key_pair:
             self.consensus.set_signing_key(self.identity._key_pair)
+        self.proof_registry = ProofRegistry(data_dir=data_dir)  # v0.2
+        self.anti_sybil = AntiSybil(node_id=self.node_id)  # v0.2
         self.ledger = IntelligenceLedger(data_dir=data_dir)
         self.api_server = AGTAPIServer(node=self, port=port)
 
@@ -350,7 +354,7 @@ class AGTNode:
             rep = AgentReputation(agent_id=agent_id)
             self.reputations[agent_id] = rep
         rep_delta = rep.apply_contribution_result(
-            proof.contribution_score, proof.task_id
+            proof.contribution_score, proof.task_id, proof.proof_id
         )
 
         # Record in Intelligence Ledger (with supply guard)
@@ -367,6 +371,23 @@ class AGTNode:
                 f"[Node] Contribution REJECTED by supply guard: {e}"
             )
             return  # Don't record — ledger rejected it
+
+        # v0.2: Verify proof signature independently
+        if proof.is_signed():
+            verification = self.proof_registry.verify_proof(proof)
+            if not verification["verified"]:
+                logger.warning(
+                    f"[Node] Proof verification FAILED: {verification['reason']}"
+                )
+
+        # v0.2: Anti-Sybil check
+        sybil_alert = self.anti_sybil.check_contribution(
+            proof, agent_id, self.node_id
+        )
+        if sybil_alert:
+            logger.warning(
+                f"[Node] Anti-Sybil alert: {sybil_alert.severity} — {sybil_alert.reason}"
+            )
 
         # v0.2: Update agent capability profile
         agent_ident = self.agent_identities.get(agent_id)

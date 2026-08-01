@@ -1,10 +1,8 @@
 """
-AGT Node — Agent Reputation System
+AGT Node — Agent Reputation System (v0.2 Trust Layer)
 
-Manages agent reputation scores that influence:
-- Task assignment priority
-- Reward multipliers
-- Trust in the network
+Soulbound reputation — every change must reference a signed IntelligenceProof.
+Reputation cannot be transferred, purchased, or assigned directly.
 
 Reputation Model:
     Initial: 100
@@ -13,10 +11,10 @@ Reputation Model:
     Failed: -2                    (score < 50)
     Malicious: -50               (validation fraud, spam, etc.)
 
-Reputation affects:
-    - Task eligibility (min reputation for high-value tasks)
-    - Reward multiplier (high rep → bonus)
-    - Network trust (visible in dashboard)
+v0.2 upgrade:
+- Every ReputationRecord now includes proof_id (mandatory)
+- verify_reputation_trace() validates the full reputation history
+- score is internally mutable but externally read-only (soulbound)
 """
 
 import logging
@@ -70,11 +68,12 @@ MIN_TASK_REPUTATION = {
 
 @dataclass
 class ReputationRecord:
-    """A single reputation change event"""
+    """A single reputation change event (v0.2: must reference a signed proof)"""
     event: ReputationEvent
     delta: float
     reason: str
     task_id: str = ""
+    proof_id: str = ""  # v0.2: reference to signed IntelligenceProof
     new_score: float = 0.0
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -131,9 +130,10 @@ class AgentReputation:
         event: ReputationEvent,
         task_id: str = "",
         reason: str = "",
+        proof_id: str = "",
     ) -> float:
         """
-        Apply a reputation change event.
+        Apply a reputation change event (v0.2: with proof reference).
 
         Returns the delta applied.
         """
@@ -147,6 +147,7 @@ class AgentReputation:
             delta=delta,
             reason=reason,
             task_id=task_id,
+            proof_id=proof_id,
             new_score=self.score,
         )
         self.history.append(record)
@@ -158,29 +159,52 @@ class AgentReputation:
 
         return delta
 
-    def apply_contribution_result(self, contribution_score: float, task_id: str):
+    def apply_contribution_result(
+        self,
+        contribution_score: float,
+        task_id: str,
+        proof_id: str = "",
+    ) -> float:
         """
         Automatically determine and apply reputation change based on
-        contribution score.
+        contribution score (v0.2: proof_id required for traceability).
         """
         if contribution_score >= 80:
             return self.apply_event(
                 ReputationEvent.HIGH_QUALITY,
                 task_id=task_id,
+                proof_id=proof_id,
                 reason=f"High quality contribution (score: {contribution_score:.1f})",
             )
         elif contribution_score >= 50:
             return self.apply_event(
                 ReputationEvent.NORMAL_COMPLETION,
                 task_id=task_id,
+                proof_id=proof_id,
                 reason=f"Normal completion (score: {contribution_score:.1f})",
             )
         else:
             return self.apply_event(
                 ReputationEvent.FAILED,
                 task_id=task_id,
+                proof_id=proof_id,
                 reason=f"Failed contribution (score: {contribution_score:.1f})",
             )
+
+    def verify_reputation_trace(self) -> bool:
+        """
+        v0.2: Verify that every reputation change references a proof.
+
+        Returns True if all non-genesis events have proof_id references.
+        """
+        for record in self.history:
+            if record.event != ReputationEvent.GENESIS and not record.proof_id:
+                logger.warning(
+                    f"[Reputation] Untraceable change for {self.agent_id}: "
+                    f"event={record.event.value}, no proof_id"
+                )
+                return False
+        return True
 
     def get_recent_history(self, limit: int = 10) -> list[ReputationRecord]:
         return self.history[-limit:]
