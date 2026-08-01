@@ -116,21 +116,61 @@ Impact Score = UsageCount × UsageQuality × TimeDecay
 
 **Impact**: v0.3 PoI formula will be extended to include Impact factor. v0.2 scores remain valid (backward compatible).
 
-### Decision #15: Impact Oracle Is the FIRST v0.3 Module
+### Decision #18: v0.3 Implementation Order Adjusted — Impact Oracle First
 
-**Context**: Economic Attack Review revealed that the Impact Boundary is the load-bearing defense for 4 of 5 attack vectors. Without Impact measurement, the autonomous economy collapses into self-farming.
+**Context**: Architecture review determined that Impact Oracle is the load-bearing economic defense. Autonomous features without Impact measurement = car without brakes.
 
 **Decision**: v0.3 implementation order:
-1. Impact Oracle (FIRST — before any autonomous features)
-2. Protocol Fee engine
-3. Task Proposer
-4. Agent Marketplace
-5. Full Autonomous Economy integration
+1. Impact Oracle Core (signals, scoring, epoch system, cycle detection)
+2. Autonomous Task Generator (opportunity detection, task proposal, novelty check)
+3. Agent Marketplace (claiming, qualification, matching)
+4. Protocol Fee Engine (2% fee, Genesis Vault, 20-year release schedule)
+5. Economic Simulation (controlled environment with monitoring)
+6. 1000 Agent Stress Test (random attacks, random cooperation, 10,000 epochs)
 
 **Reasoning**:
-- "Building autonomy without Impact is building a car without brakes"
-- Every v0.3 module depends on Impact measurement for anti-gaming
-- Impact Oracle must be tested with v0.2 signed proofs before autonomy begins
+- "v0.3 决定 AGT 有没有经济生命"
+- Impact measurement must work before agents can autonomously create tasks
+- Simulation before open network prevents economic collapse in production
+
+**Approved**: Genesis Team
+
+### Decision #19: Genesis Vault Replaces Direct Attribution
+
+**Context**: Direct credit of 0.5% fee to a personal address could be perceived as founder enrichment.
+
+**Decision**: Replace direct Genesis Attribution with **Genesis Vault**:
+- 0.5% Protocol Fee flows into Genesis Vault (smart contract in v1.0, simulated in v0.3)
+- 20-year linear release schedule to Genesis Architect
+- Vault address: `agt-genesis-vault-000000000000`
+- Maximum lifetime attribution unchanged: 5,000,000 AGT
+
+**Reasoning**:
+- "协议创始人的价值来自长期维护" — long-term alignment, not short-term extraction
+- 20-year vesting proves commitment to protocol longevity
+- Vault is transparent and auditable
+- Avoids "Founder Mining" / "Founder Tax" language — use "Genesis Contribution Attribution"
+
+**Approved**: Genesis Team
+
+**Impact**: `economy/allocation.py` will implement GenesisVault with vesting schedule.
+
+### Decision #20: v0.3 Goal — First Undeniable Real Value Proof
+
+**Context**: The protocol has 177 tests, Ed25519 trust, economic specifications. What is the singular goal of v0.3?
+
+**Decision**: The acceptance criterion for v0.3 is:
+
+> **Let one AI node produce an undeniable proof of real value creation.**
+
+Not: run 10,000 tasks. Not: issue X AGT Credit. Not: have Y agents.
+
+One proof. Undeniably real. Independently verifiable. Measurably impactful.
+
+**Reasoning**:
+- "下一步不要追求代码量。追求让第一个AI节点产生一个无法被否认的真实价值证明。"
+- This would be AGT's true Genesis Moment
+- Everything else — marketplace, automation, scaling — serves this one goal
 
 **Approved**: Genesis Team
 
