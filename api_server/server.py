@@ -7,6 +7,7 @@ Provides CRUD access to: Node / Agent / Task / Contribution / Ledger / Reputatio
 
 import asyncio
 import logging
+import os
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -119,6 +120,18 @@ class AGTAPIServer:
 
     def _setup_routes(self):
         app = self.app
+
+        # Dashboard static files
+        dashboard_dir = os.path.join(os.path.dirname(__file__), "..", "web_dashboard")
+        if os.path.isdir(dashboard_dir):
+            app.mount("/static", StaticFiles(directory=dashboard_dir), name="dashboard_static")
+
+        @app.get("/")
+        async def dashboard():
+            dashboard_html = os.path.join(os.path.dirname(__file__), "..", "web_dashboard", "index.html")
+            if os.path.isfile(dashboard_html):
+                return FileResponse(dashboard_html)
+            return {"message": "AGT Network API", "dashboard": "web_dashboard/index.html not found"}
 
         @app.get("/api/health")
         async def health():
