@@ -1,4 +1,4 @@
-# AGT Network v0.1 — Genesis Prototype
+# AGT Network v0.1 - Genesis Prototype
 # Core dependencies
 
 # Web framework + async server
