@@ -74,7 +74,11 @@ v1.0 — AGT P2P Protocol
 
 ## 版本历史
 
+- **v0.1.2** — Genesis Archive: 白皮书、架构记录、审计报告、创世记录
+- **v0.1.1** — Ledger 持久化 + Supply Guard
 - **v0.1** — AGT Genesis Prototype：跑通第一个智能经济循环
+
+📜 Genesis Archive: [genesis-archive/](genesis-archive/) — 协议历史存档
 
 ## 署名
 
