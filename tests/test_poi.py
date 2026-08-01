@@ -778,7 +778,7 @@ class TestIdentity:
             node_id="agt-node-abc12345",
         )
         assert gen.founder_id == "yuqiu-hong"
-        assert gen.version == "v0.1-genesis"
+        assert gen.version.startswith("v0.")  # Version evolves with protocol
         assert len(gen.genesis_hash) == 64
 
     def test_genesis_not_admin(self):

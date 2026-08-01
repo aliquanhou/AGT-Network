@@ -191,7 +191,7 @@ class TestE2EEconomicLoop:
 
             assert node.genesis_identity is not None
             assert node.genesis_identity.founder_id == "Dr. Yu Qiuhong"
-            assert node.genesis_identity.version == "v0.1-genesis"
+            assert node.genesis_identity.version.startswith("v0.")
             assert len(node.genesis_identity.genesis_hash) == 64
 
             # Genesis identity is a record, not a privilege

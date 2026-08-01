@@ -15,6 +15,9 @@
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Founding architecture — module map, technical decisions, constraints |
 | [AUDIT-v0.1.md](AUDIT-v0.1.md) | Security audit — 5 findings, 2 P0 fixed in v0.1.1, 3 → v0.2 |
 | [GENESIS-RECORD.json](GENESIS-RECORD.json) | AGT-GENESIS-000001 — the first Intelligence Record |
+| [DECISION_LOG.md](DECISION_LOG.md) | Every major design decision with context, reasoning, and impact |
+| [GENESIS-REVIEW.md](GENESIS-REVIEW.md) | Design freeze review — 3 core questions resolved |
+| [TRUST-LAYER-v0.2.md](TRUST-LAYER-v0.2.md) | v0.2 Trust Layer design outline (not yet implemented) |
 
 ---
 

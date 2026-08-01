@@ -29,6 +29,7 @@ from pathlib import Path
 from .identity import NodeIdentity, GenesisIdentity
 from .reputation import AgentReputation, ReputationEvent
 from .wallet import CreditWallet
+from .agent_identity import AgentIdentity, CapabilityProfile
 
 from p2p_network.discovery import Discovery
 from p2p_network.connection import ConnectionManager
@@ -72,12 +73,19 @@ class AGTNode:
         founder_id: str = "",
         data_dir: str = "./data",
     ):
-        # ---- Identity ----
-        self.node_id = f"agt-node-{port}"
+        # ---- Identity (v0.2: Ed25519 key pair) ----
         self.node_name = node_name
         self.host = host
         self.port = port
         self.founder_id = founder_id or node_name
+
+        Path(data_dir).mkdir(parents=True, exist_ok=True)
+        self.identity = NodeIdentity.create(
+            node_name=node_name,
+            founder_id=founder_id or node_name,
+            data_dir=data_dir,
+        )
+        self.node_id = self.identity.node_id
 
         # Genesis identity (historical record, not admin)
         self.genesis_identity = GenesisIdentity.create(
@@ -89,8 +97,10 @@ class AGTNode:
         self.discovery: Discovery = None
         self.connection: ConnectionManager = None
         self.agents: dict[str, AGTAgent] = {}
+        self.agent_identities: dict[str, AgentIdentity] = {}  # v0.2: crypto-bound agent IDs
         self.wallets: dict[str, CreditWallet] = {}
         self.reputations: dict[str, AgentReputation] = {}
+        self._agent_creation_count: int = 0  # v0.2: index for ID derivation
         self.dispatcher = TaskDispatcher()
         self.consensus = ConsensusEngine(node_id=self.node_id)
         self.ledger = IntelligenceLedger(data_dir=data_dir)
@@ -190,10 +200,16 @@ class AGTNode:
     # ============================================================
 
     def create_agent(self, agent_id: str = None, name: str = "") -> AGTAgent:
-        """Register a new agent on this node"""
+        """Register a new agent on this node (v0.2: crypto-bound identity)"""
         if not agent_id:
-            import uuid
-            agent_id = f"agent-{uuid.uuid4().hex[:6]}"
+            agent_identity = AgentIdentity.create(
+                node_identity=self.identity,
+                agent_index=self._agent_creation_count,
+                name=name,
+            )
+            agent_id = agent_identity.agent_id
+            self.agent_identities[agent_id] = agent_identity
+            self._agent_creation_count += 1
 
         agent = AGTAgent(
             agent_id=agent_id,
@@ -348,6 +364,14 @@ class AGTNode:
                 f"[Node] Contribution REJECTED by supply guard: {e}"
             )
             return  # Don't record — ledger rejected it
+
+        # v0.2: Update agent capability profile
+        agent_ident = self.agent_identities.get(agent_id)
+        if agent_ident:
+            agent_ident.capability.update_from_contribution(
+                contribution_type=proof._ct_str(),
+                quality_score=proof.quality_score,
+            )
 
         logger.info(
             f"[Node] Contribution recorded: {proof.proof_id} "
