@@ -116,24 +116,59 @@ Impact Score = UsageCount × UsageQuality × TimeDecay
 
 **Impact**: v0.3 PoI formula will be extended to include Impact factor. v0.2 scores remain valid (backward compatible).
 
-### Decision #14: The Founder Role Is "Genesis Architect", Not "Key Holder"
+### Decision #15: Impact Oracle Is the FIRST v0.3 Module
 
-**Context**: Multiple decisions have reinforced that Genesis Identity is NOT an admin role. The name should reflect this.
+**Context**: Economic Attack Review revealed that the Impact Boundary is the load-bearing defense for 4 of 5 attack vectors. Without Impact measurement, the autonomous economy collapses into self-farming.
 
-**Decision**: The official designation for the human founder in all AGT documentation is:
-
-> **Genesis Architect** — the human who initiated the first Agent Economy Protocol specification.
-
-Not: admin, owner, key holder, super-user, or privileged account.
+**Decision**: v0.3 implementation order:
+1. Impact Oracle (FIRST — before any autonomous features)
+2. Protocol Fee engine
+3. Task Proposer
+4. Agent Marketplace
+5. Full Autonomous Economy integration
 
 **Reasoning**:
-- "不是'拥有钥匙的人'。而是创造第一套 AI贡献证明经济协议的人。"
-- The Genesis Architect designed the protocol. The protocol now runs independently.
-- Attribution without control — the founding principle of AGT
+- "Building autonomy without Impact is building a car without brakes"
+- Every v0.3 module depends on Impact measurement for anti-gaming
+- Impact Oracle must be tested with v0.2 signed proofs before autonomy begins
 
 **Approved**: Genesis Team
 
-**Impact**: All future documentation uses "Genesis Architect" for the human founder role.
+### Decision #16: Protocol Fee Is a Constant, Not a Lever
+
+**Context**: The concept of "protocol fee" could be misperceived as a founder enrichment mechanism.
+
+**Decision**: Intelligence Protocol Fee: 2% of every task reward, hardcoded, immutable without protocol upgrade.
+- Network Infrastructure: 1.0%
+- Ecosystem Development: 0.5%
+- Genesis Contribution Attribution: 0.5% (to public address `agt-genesis-attribution-000000000000`)
+
+**Reasoning**:
+- Mathematically bounded: max 0.5% × 1,000,000,000 = 5,000,000 AGT
+- Code-auditable: fee percentage is a constant
+- Transparent: all Genesis Attribution credits recorded on public ledger
+- Historical precedent: Zcash Founders Reward (20%, 4 years); AGT is 0.5%, permanent
+- "不要叫抽水。叫 Intelligence Protocol Fee。"
+
+**Approved**: Genesis Team
+
+### Decision #17: Economic Attack Review Passed — v0.3 Implementation Approved
+
+**Context**: Five attack vectors analyzed before any v0.3 code was written.
+
+**Decision**: v0.3 Autonomous Economy implementation is APPROVED with conditions:
+1. Impact Oracle implemented FIRST
+2. Protocol Fee engine implemented SECOND
+3. All 177 existing tests must continue to pass
+4. New anti-farming tests added for each new module
+
+**Reasoning**:
+- All 5 attack vectors have layered defenses (not single points of failure)
+- The Impact Boundary is the load-bearing defense — must be built first
+- No attack achieves "protocol death" — each is bounded by economic irrationality
+- Residual risks are acknowledged and accepted as inherent to permissionless protocols
+
+**Approved**: Genesis Team
 
 ---
 
