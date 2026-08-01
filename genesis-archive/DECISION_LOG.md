@@ -179,6 +179,33 @@ Impact Score = UsageCount × UsageQuality × TimeDecay
 
 **Impact**: v0.36.x is the stabilization branch. v0.5+ requires AIPs for any protocol change.
 
+### Decision #22: Protocol Specification — AGN Series (Language-Agnostic)
+
+**Context**: The protocol has 13,500 lines of Python and 285 tests. But a protocol defined only by its reference implementation is fragile — it can only be implemented by reading Python code.
+
+**Decision**: Publish the AGN (AGT Network Specification) series — 8 language-agnostic protocol specifications that define every core component:
+
+- AGN-000: Specification Conventions (normative language, data types)
+- AGN-001: Agent and Node Identity (Ed25519, agent ID derivation)
+- AGN-002: Intelligence Ledger (block structure, hash chain)
+- AGN-003: Intelligence Proof (score formula, signatures)
+- AGN-004: Impact Score (signals, epochs, cycle detection)
+- AGN-005: Agent Reputation (soulbound model, traceability)
+- AGN-006: P2P Protocol (UDP discovery, WebSocket, message types)
+- AGN-007: Protocol Fee (fee schedule, Genesis Vault, vesting)
+
+Each specification is self-contained — it can be implemented without reading the reference implementation.
+
+**Reasoning**:
+- "真正值钱的不是这 13,500 行 Python。真正值钱的是别人愿意按照 AGT Protocol 实现第二套兼容实现。"
+- Bitcoin has BIPs. Ethereum has EIPs. HTTP has RFCs. AGT has AGNs.
+- The specification is the protocol. The implementation is a demonstration.
+- This is what separates a "protocol" from a "Python project."
+
+**Approved**: Genesis Architecture
+
+**Impact**: The AGN series is the authoritative protocol definition. Future reference implementations in Go, Rust, Java, or C++ must conform to the AGN specifications, not to the Python implementation.
+
 **Context**: The protocol has 177 tests, Ed25519 trust, economic specifications. What is the singular goal of v0.3?
 
 **Decision**: The acceptance criterion for v0.3 is:

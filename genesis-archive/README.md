@@ -16,7 +16,7 @@ This archive preserves the founding documents, architecture, audit, genesis reco
 | [ARCHITECTURE.md](ARCHITECTURE.md) | ✅ Sealed | Founding architecture — module map, technical decisions, constraints |
 | [AUDIT-v0.1.md](AUDIT-v0.1.md) | ✅ Remediated | Security audit — 5 findings, all resolved by v0.2 |
 | [GENESIS-RECORD.json](GENESIS-RECORD.json) | ✅ Sealed | AGT-GENESIS-000001 — the first Intelligence Record |
-| [DECISION_LOG.md](DECISION_LOG.md) | 📝 Active | Every major design decision (14 decisions as of v0.3) |
+| [DECISION_LOG.md](DECISION_LOG.md) | 📝 Active | Every major design decision (22 decisions as of v0.36.1) |
 | [GENESIS-REVIEW.md](GENESIS-REVIEW.md) | ✅ Sealed | Design freeze review — 3 core questions resolved |
 
 ### Trust Layer (v0.2)
