@@ -155,7 +155,29 @@ Impact Score = UsageCount × UsageQuality × TimeDecay
 
 **Impact**: `economy/allocation.py` will implement GenesisVault with vesting schedule.
 
-### Decision #20: v0.3 Goal — First Undeniable Real Value Proof
+### Decision #21: Protocol Freeze — AIP Governance Established
+
+**Context**: v0.36 is complete. The protocol has 8 versions, 285 tests, and public-ready deployment. Continued rapid iteration on core rules would undermine protocol trust.
+
+**Decision**: 
+1. **Protocol Freeze**: 8 core components frozen. Changes require a Core AIP.
+2. **AIP Governance**: All protocol changes proceed through the AGT Improvement Proposal process (AIP-0).
+3. **v0.36.x**: Bug fixes, docs, deployment, and tests only. No new protocol features.
+4. **AIP-1**: Formal declaration of Genesis Phase completion.
+
+**Frozen components**: PoI formula, Reputation model, Ledger structure, Impact scoring, Protocol Fee, Identity, Validator rules, Signal weights.
+
+**Non-frozen**: Dashboard, API, SDK, examples, Docker, docs, tests, bug fixes, performance.
+
+**Reasoning**:
+- "协议需要稳定。协议不是靠自己证明。协议靠别人愿意使用证明。"
+- A protocol that changes weekly cannot be relied upon by strangers
+- The AIP process mirrors successful open protocols (Bitcoin BIP, Ethereum EIP)
+- Protocol freeze doesn't mean development stops — it means changes are deliberate, transparent, and reviewed
+
+**Approved**: Genesis Architecture
+
+**Impact**: v0.36.x is the stabilization branch. v0.5+ requires AIPs for any protocol change.
 
 **Context**: The protocol has 177 tests, Ed25519 trust, economic specifications. What is the singular goal of v0.3?
 
