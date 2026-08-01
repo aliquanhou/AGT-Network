@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGT Network — Dashboard</title>
+<style>
+  :root {
+    --bg: #0a0a0f; --panel: #12121a; --border: #1e1e2e;
+    --text: #c8c8d4; --dim: #6c6c84; --accent: #7c5cfc;
+    --green: #34d399; --red: #f87171; --yellow: #fbbf24; --blue: #60a5fa;
+    --gradient: linear-gradient(135deg, #7c5cfc, #a78bfa);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:system-ui, sans-serif; min-height:100vh; }
+  header { background:var(--panel); border-bottom:1px solid var(--border); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; }
+  header h1 { font-size:18px; background:var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  header .badge { font-size:11px; color:var(--accent); border:1px solid var(--accent); padding:4px 10px; border-radius:12px; }
+  .layout { display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:16px; padding:20px; max-width:1400px; margin:0 auto; }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .card-header { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); }
+  .card-body { padding:16px 18px; max-height:400px; overflow-y:auto; }
+  .stat-row { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; padding:20px; max-width:1400px; margin:0 auto; }
+  .stat { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; text-align:center; }
+  .stat .value { font-size:28px; font-weight:700; }
+  .stat .label { font-size:11px; color:var(--dim); margin-top:4px; text-transform:uppercase; letter-spacing:.5px; }
+  .stat .value.accent { color:var(--accent); }
+  .stat .value.green { color:var(--green); }
+  .stat .value.blue { color:var(--blue); }
+
+  .list-item { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .list-item:last-child { border-bottom:none; }
+  .tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:600; text-transform:uppercase; }
+  .tag-gen { background:#7c5cfc22; color:var(--accent); }
+  .tag-open { background:#34d39922; color:var(--green); }
+  .tag-done { background:#60a5fa22; color:var(--blue); }
+  .tag-fail { background:#f8717122; color:var(--red); }
+
+  .btn { background:var(--accent); color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600; transition:opacity .2s; }
+  .btn:hover { opacity:.85; }
+  .btn-sm { padding:4px 10px; font-size:11px; }
+
+  .section-title { font-size:12px; font-weight:600; color:var(--dim); text-transform:uppercase; letter-spacing:.5px; margin-bottom:12px; }
+
+  .event-log { font-family:'Cascadia Code', 'Fira Code', monospace; font-size:11px; line-height:1.6; }
+  .event-log .event { padding:4px 0; border-bottom:1px solid var(--border); }
+  .event-log .event .time { color:var(--dim); margin-right:8px; }
+  .event-log .event.contribution { color:var(--green); }
+  .event-log .event.reward { color:var(--yellow); }
+  .event-log .event.error { color:var(--red); }
+
+  .rep-bar { height:6px; background:var(--border); border-radius:3px; margin-top:4px; overflow:hidden; }
+  .rep-bar-fill { height:100%; border-radius:3px; transition:width .4s; }
+  .rep-sage { background:linear-gradient(90deg, #7c5cfc, #a78bfa); }
+  .rep-expert { background:linear-gradient(90deg, #60a5fa, #34d399); }
+  .rep-trusted { background:#34d399; }
+  .rep-active { background:var(--blue); }
+  .rep-new { background:var(--yellow); }
+  .rep-low { background:var(--red); }
+
+  @media(max-width:768px) {
+    .stat-row { grid-template-columns:repeat(2, 1fr); }
+    .layout { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <h1>⚡ AGT Network</h1>
+    <span class="badge">Genesis v0.1</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;font-size:12px;color:var(--dim);">
+    <span id="node-id-display">Node: —</span>
+    <span id="conn-status" style="color:var(--red);">● Disconnected</span>
+  </div>
+</header>
+
+<!-- Stats Row -->
+<div class="stat-row">
+  <div class="stat"><div class="value accent" id="stat-peers">0</div><div class="label">Connected Peers</div></div>
+  <div class="stat"><div class="value green" id="stat-agents">0</div><div class="label">Active Agents</div></div>
+  <div class="stat"><div class="value blue" id="stat-tasks">0</div><div class="label">Open Tasks</div></div>
+  <div class="stat"><div class="value accent" id="stat-credit">0</div><div class="label">AGT Credit Issued</div></div>
+</div>
+
+<!-- Main Grid -->
+<div class="layout">
+
+  <!-- Tasks Panel -->
+  <div class="card">
+    <div class="card-header">
+      <span>📋 Genesis Tasks</span>
+      <button class="btn btn-sm" onclick="refreshTasks()">Refresh</button>
+    </div>
+    <div class="card-body" id="tasks-panel">
+      <div style="color:var(--dim);text-align:center;padding:20px;">Loading tasks...</div>
+    </div>
+  </div>
+
+  <!-- Agents Panel -->
+  <div class="card">
+    <div class="card-header">
+      <span>🤖 Agents</span>
+      <span id="agent-count" style="font-size:11px;color:var(--dim);">0</span>
+    </div>
+    <div class="card-body" id="agents-panel">
+      <div style="color:var(--dim);text-align:center;padding:20px;">No agents registered</div>
+    </div>
+  </div>
+
+  <!-- Contributions Panel -->
+  <div class="card">
+    <div class="card-header">
+      <span>🏆 Recent Contributions</span>
+      <span id="contrib-count" style="font-size:11px;color:var(--dim);">0</span>
+    </div>
+    <div class="card-body" id="contributions-panel">
+      <div style="color:var(--dim);text-align:center;padding:20px;">No contributions yet</div>
+    </div>
+  </div>
+
+  <!-- Intelligence Ledger -->
+  <div class="card">
+    <div class="card-header">
+      <span>📒 Intelligence Ledger</span>
+      <button class="btn btn-sm" onclick="verifyChain()">Verify Chain</button>
+    </div>
+    <div class="card-body" id="ledger-panel">
+      <div style="color:var(--dim);text-align:center;padding:20px;">Ledger empty</div>
+    </div>
+  </div>
+
+  <!-- Reputation Leaderboard -->
+  <div class="card">
+    <div class="card-header"><span>⭐ Reputation</span></div>
+    <div class="card-body" id="reputation-panel">
+      <div style="color:var(--dim);text-align:center;padding:20px;">No reputations tracked</div>
+    </div>
+  </div>
+
+  <!-- Event Log -->
+  <div class="card">
+    <div class="card-header"><span>📡 Event Log</span></div>
+    <div class="card-body event-log" id="event-log" style="max-height:300px;">
+      <div class="event"><span class="time">--:--:--</span> Waiting for events...</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
