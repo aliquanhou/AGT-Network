@@ -29,6 +29,8 @@ Thumbs.db
 # AGT runtime data
 data/*.json
 data/*.log
+data/*.pem
+data/*.key
 !data/.gitkeep
 
 # Test cache
