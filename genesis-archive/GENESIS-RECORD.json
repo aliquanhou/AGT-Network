@@ -1,43 +1,54 @@
 {
   "record": "AGT-GENESIS-000001",
   "network": "AGT Network",
-  "version": "v0.3-design-phase",
-  "event": "First Agent Economy Protocol — Genesis Prototype Verified, Trust Layer Complete",
+  "version": "1.0.0-genesis",
+  "event": "First Agent Economy Protocol — Engineering Complete",
   "timestamp": "2026-08-01",
 
-  "genesis_architect": {
-    "name": "Dr. Yu Qiuhong",
-    "role": "Protocol Vision & Architecture Design",
-    "contribution": "Proposed Proof of Intelligence, defined Agent Economy Protocol architecture, established four-stage economic consensus"
+  "genesis_contributors": {
+    "human_founder": {
+      "name": "Dr. Yu Qiuhong",
+      "role": "Project Founder, Protocol Initiator, Product Direction",
+      "contribution": "Proposed Proof of Intelligence. Defined Agent Economy Protocol architecture. Established four-stage economic consensus. Set core principle: AGT is not about a coin — it is about an Agent Economy."
+    },
+    "ai_collaborators": [
+      {
+        "system": "ChatGPT",
+        "role": "Architecture Design & Review",
+        "contribution": "Protocol structure analysis, economic model design, attack surface assessment, technical review, audit recommendations"
+      },
+      {
+        "system": "Claude (with DeepSeek as execution model)",
+        "role": "Protocol Implementation & Engineering",
+        "contribution": "Full protocol implementation: architecture translation, code generation, testing, refactoring, documentation, deployment engineering. 23 git commits, 13,500+ lines, 285 tests."
+      },
+      {
+        "system": "DeepSeek",
+        "role": "LLM Execution Backend",
+        "contribution": "Provided underlying reasoning and code generation capabilities for Claude's implementation work"
+      }
+    ]
   },
 
-  "engineering_collaborators": [
-    {
-      "role": "Architecture Analysis",
-      "type": "AI-assisted",
-      "contribution": "Protocol structure review, economic model analysis, attack surface assessment"
-    },
-    {
-      "role": "Protocol Implementation",
-      "type": "AI-assisted",
-      "contribution": "Full protocol: 8,769 lines Python, 177 tests, 14 git snapshots, 11 subsystems"
-    },
-    {
-      "role": "Validation & Audit",
-      "type": "AI-assisted",
-      "contribution": "Test suite design, edge case discovery, 5-finding security audit"
-    }
-  ],
-
-  "development_paradigm": "Human-AI Collaborative Engineering Experiment",
+  "development_paradigm": "Human-AI Collaborative Engineering — one human providing vision and architectural direction; AI systems executing engineering at scale. This paradigm itself may be one of AGT's first proofs of concept.",
 
   "protocol_state": {
-    "code_lines": 8769,
-    "tests": 177,
-    "test_result": "177/177 passing",
-    "modules": 11,
-    "git_commits": 14,
-    "archive_documents": 12
+    "specifications": 8,
+    "code_lines": 13500,
+    "tests": 285,
+    "test_result": "All passing",
+    "modules": 14,
+    "git_commits": 23,
+    "archive_documents": 14,
+    "license": "MIT"
+  },
+
+  "protocol_identity": {
+    "core_consensus": "Proof of Intelligence (PoI)",
+    "trust_layer": "Ed25519 Identity + Proof Signatures",
+    "economic_layer": "Autonomous Agent Economy",
+    "governance": "AIP Process + Protocol Freeze",
+    "specification": "AGN Series (language-agnostic)"
   },
 
   "core_principle": "AGT is not about creating a coin. It is about establishing the first Agent Economy experimental network. The core asset is Intelligence Contribution History.",
@@ -48,14 +59,6 @@
     "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
     "proof_id": "poi-genesis-000000000000",
     "reward": 0,
-    "note": "Historical marker only. No special permissions."
-  },
-
-  "commitments": [
-    "No hidden admin key or emergency pause",
-    "Protocol fees are fixed constants, auditable in code",
-    "Any node can join, any agent can earn reputation",
-    "Contribution history is permanently recorded and cannot be erased",
-    "Genesis Architect is recorded as originator, not controller"
-  ]
+    "note": "Historical marker only. No special permissions. The Genesis Architect is recorded as originator, not controller."
+  }
 }

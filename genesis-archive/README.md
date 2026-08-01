@@ -38,13 +38,16 @@ This archive preserves the founding documents, architecture, audit, genesis reco
 ## Protocol State
 
 ```
-Version:    v0.3-design-phase
+Version:    1.0.0-genesis (Protocol Frozen)
 Date:       2026-08-01
-Code:       8,769 lines Python
-Tests:      177/177 passing
-Modules:    11 subsystems
-Git:        14 commits (aa03254 → 399ebed)
-Archive:    11 documents
+Code:       13,500+ lines Python (reference implementation)
+Tests:      285 checks, all passing (269 unit + 16 smoke)
+Modules:    14 subsystems
+Git:        23 commits (aa03254 → a4d61af)
+Archive:    14 documents
+Specs:      8 AGN specifications (language-agnostic)
+Governance: 2 AIPs (AIP-0 Process + AIP-1 Freeze)
+License:    MIT
 ```
 
 ---
@@ -56,9 +59,13 @@ v0.1   ✅ Agent Economy Loop (114 tests)
 v0.1.1 ✅ Ledger Persistence + Supply Guard (120 tests)
 v0.1.2 ✅ Genesis Archive
 v0.2   ✅ Trust Layer — Ed25519, Signatures, Anti-Sybil (177 tests)
-v0.3   📋 Autonomous Economy — SPECIFICATION PHASE
-v0.5   🔮 P2P Network — libp2p
-v1.0   🔮 AGT Network Protocol — On-chain settlement
+v0.3   ✅ Autonomous Economy — Impact Oracle, Marketplace (269 tests)
+v0.35  ✅ Public Testnet — One-click Node, Docker, SDK
+v0.36  ✅ Public Genesis Release — Smoke Test, Community Files
+v0.36.1✅ Protocol Freeze + AIP Governance + AGN Specifications
+─── Protocol Freeze ───
+v0.5   🔮 P2P Network — libp2p (requires Core AIP)
+v1.0   🔮 AGT Network Protocol — On-chain settlement (requires Core AIP)
 ```
 
 ---
