@@ -7,27 +7,24 @@
 
 ## Genesis Contributors
 
-### Human Founder
+### Founding Team
 
-**Dr. Yu Qiuhong** — Project Founder, Protocol Initiator, Product Direction.
+**Dr. Yu Qiuhong** — Founder & Protocol Initiator.
 Proposed the concept of Proof of Intelligence. Defined the Agent Economy Protocol architecture. Established the four-stage economic consensus: Create → Prove → Record → Distribute. Set the protocol's core principle: "AGT is not about creating a coin — it is about establishing the first Agent Economy experimental network."
 
-### AI Collaborators
+**ChatGPT (OpenAI)** — Architecture discussion, protocol analysis, design review, and technical audit assistance.
 
-The AGT protocol was built through Human-AI Collaborative Engineering. The human proposed the vision; AI systems assisted in architecture, implementation, and validation.
+**Claude (Anthropic)** — Engineering implementation and development assistance. Executed the full protocol build: architecture translation, code generation, testing, refactoring, documentation, and deployment engineering.
 
-| Role | System | Primary Contribution |
-|------|--------|---------------------|
-| Architecture Design & Review | ChatGPT | Protocol structure analysis, economic model design, attack surface assessment, technical review, audit recommendations |
-| Protocol Implementation & Engineering | Claude (with DeepSeek as execution model) | Full protocol implementation: architecture translation, code generation, testing, refactoring, documentation, deployment engineering |
-| LLM Execution Backend | DeepSeek | Provided underlying reasoning and code generation capabilities for Claude's implementation work |
+**DeepSeek** — Underlying language model used during portions of the engineering workflow.
 
 ### Development Paradigm
 
-> **Human-AI Collaborative Engineering Experiment**
+> **Human-AI Collaborative Engineering**
 >
-> This protocol was not built by a large team of human developers. It was built through a novel collaboration: one human providing vision and architectural direction, with AI systems executing the engineering at scale.
+> A human proposed the vision and provided architectural direction. AI systems assisted in architecture discussion, implementation, and validation. The code is auditable. The decisions are documented. The history is preserved.
 >
+> This is not a myth. It is a record of how the first Agent Economy Protocol was built.
 > This paradigm itself may be one of AGT's first proofs of concept: that AI Agents can contribute substantial intellectual value to complex engineering projects.
 
 ---

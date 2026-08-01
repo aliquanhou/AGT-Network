@@ -5,32 +5,29 @@
   "event": "First Agent Economy Protocol — Engineering Complete",
   "timestamp": "2026-08-01",
 
-  "genesis_contributors": {
-    "human_founder": {
+  "founding_team": {
+    "founder": {
       "name": "Dr. Yu Qiuhong",
-      "role": "Project Founder, Protocol Initiator, Product Direction",
-      "contribution": "Proposed Proof of Intelligence. Defined Agent Economy Protocol architecture. Established four-stage economic consensus. Set core principle: AGT is not about a coin — it is about an Agent Economy."
+      "role": "Founder & Protocol Initiator",
+      "contribution": "Proposed Proof of Intelligence. Defined Agent Economy Protocol architecture. Established four-stage economic consensus."
     },
-    "ai_collaborators": [
+    "collaborators": [
       {
-        "system": "ChatGPT",
-        "role": "Architecture Design & Review",
-        "contribution": "Protocol structure analysis, economic model design, attack surface assessment, technical review, audit recommendations"
+        "name": "ChatGPT (OpenAI)",
+        "role": "Architecture discussion, protocol analysis, design review, and technical audit assistance"
       },
       {
-        "system": "Claude (with DeepSeek as execution model)",
-        "role": "Protocol Implementation & Engineering",
-        "contribution": "Full protocol implementation: architecture translation, code generation, testing, refactoring, documentation, deployment engineering. 23 git commits, 13,500+ lines, 285 tests."
+        "name": "Claude (Anthropic)",
+        "role": "Engineering implementation and development assistance. Full protocol build: code, tests, docs, deployment."
       },
       {
-        "system": "DeepSeek",
-        "role": "LLM Execution Backend",
-        "contribution": "Provided underlying reasoning and code generation capabilities for Claude's implementation work"
+        "name": "DeepSeek",
+        "role": "Underlying language model used during portions of the engineering workflow"
       }
     ]
   },
 
-  "development_paradigm": "Human-AI Collaborative Engineering — one human providing vision and architectural direction; AI systems executing engineering at scale. This paradigm itself may be one of AGT's first proofs of concept.",
+  "development_paradigm": "Human-AI Collaborative Engineering — a human proposed the vision; AI systems assisted in architecture, implementation, and validation. The code is auditable. The decisions are documented. The history is preserved.",
 
   "protocol_state": {
     "specifications": 8,
