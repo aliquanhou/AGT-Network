@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  agt-node-a:
+    build: .
+    container_name: agt-node-a
+    ports:
+      - "8001:8001"
+    environment:
+      - AGT_NODE_NAME=AGT Node A
+      - AGT_PORT=8001
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ./data/node-a:/app/data
+    restart: unless-stopped
+
+  agt-node-b:
+    build: .
+    container_name: agt-node-b
+    ports:
+      - "8002:8002"
+    environment:
+      - AGT_NODE_NAME=AGT Node B
+      - AGT_PORT=8002
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ./data/node-b:/app/data
+    restart: unless-stopped
+    profiles:
+      - dual
