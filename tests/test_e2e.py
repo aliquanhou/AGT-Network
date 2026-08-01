@@ -326,3 +326,149 @@ class TestE2EEconomicLoop:
             assert status["tasks_completed"] >= 1
 
             await node.stop()
+
+    # ============================================================
+    # v0.2 Trust Layer E2E Tests
+    # ============================================================
+
+    @pytest.mark.asyncio
+    async def test_trust_chain_end_to_end(self):
+        """
+        v0.2 TRUST CHAIN: Identity → Sign → Verify → Reputation → Ledger
+
+        Verifies the complete cryptographic trust pipeline:
+        1. Node identity has Ed25519 key pair
+        2. Agent identity is crypto-bound to node
+        3. IntelligenceProof is signed by validator
+        4. Proof signature verifies
+        5. Reputation change references proof_id
+        6. Reputation trace is verifiable
+        7. Ledger block contains signed proof
+        8. Capability profile updates from contributions
+        """
+        with tempfile.TemporaryDirectory() as tmpdir:
+            node = AGTNode(
+                node_name="Trust Chain Test",
+                port=19988,
+                host="127.0.0.1",
+                data_dir=tmpdir,
+            )
+            node.llm_client = E2EMockLLM()
+            await node.start()
+
+            # ---- Check 1: Ed25519 keys generated ----
+            assert node.identity.public_key_hex != ""
+            assert len(node.identity.public_key_hex) == 64
+            assert node.identity._key_pair is not None
+
+            # ---- Check 2: Agent identity is crypto-bound ----
+            agent = node.create_agent(name="trust-agent")
+            agent_ident = node.agent_identities.get(agent.agent_id)
+            assert agent_ident is not None
+            assert agent_ident.soulbound
+            assert agent_ident.owner_public_key_hex == node.identity.public_key_hex
+
+            # ---- Check 3-4: Run a task cycle, proof is signed ----
+            result = await node.run_task_cycle()
+
+            assert result["confirmed"], "Task cycle must succeed"
+            proof_id = result["proof_id"]
+
+            # Find the proof in the ledger
+            contrib_blocks = [b for b in node.ledger.blocks if b.index > 0]
+            assert len(contrib_blocks) >= 1
+
+            proof = contrib_blocks[-1].contribution_proof
+            assert proof is not None
+            assert proof.is_signed(), "Proof must be signed by validator"
+            assert proof.verify_signature(), "Proof signature must verify"
+
+            # ---- Check 5-6: Reputation traceable ----
+            rep = node.reputations.get(agent.agent_id)
+            assert rep is not None
+            assert len(rep.history) >= 1
+            assert rep.history[-1].proof_id == proof.proof_id
+            assert rep.verify_reputation_trace(), "Reputation must be traceable to proofs"
+
+            # ---- Check 7: Ledger contains signed proof ----
+            block = contrib_blocks[-1]
+            block_proof = block.contribution_proof
+            assert block_proof.is_signed()
+            assert block_proof.verify_signature()
+
+            # ---- Check 8: Capability profile updated ----
+            assert agent_ident.capability.stars("python") >= 1, (
+                "Capability profile should reflect contribution"
+            )
+
+            # ---- Check 9: Proof registry verifies ----
+            verification = node.proof_registry.verify_proof(proof)
+            assert verification["verified"], f"Registry verification: {verification['reason']}"
+
+            # ---- Check 10: Chain integrity ----
+            assert node.ledger.verify_chain()
+
+            await node.stop()
+
+    @pytest.mark.asyncio
+    async def test_v02_identity_flow(self):
+        """Agent identity can be verified independently by any node"""
+        with tempfile.TemporaryDirectory() as tmpdir_a, tempfile.TemporaryDirectory() as tmpdir_b:
+            node_a = AGTNode(
+                node_name="Identity Node A",
+                port=19989,
+                host="127.0.0.1",
+                data_dir=tmpdir_a,
+            )
+            node_a.llm_client = E2EMockLLM()
+            await node_a.start()
+
+            agent_a = node_a.create_agent(name="identity-agent")
+            agent_ident = node_a.agent_identities[agent_a.agent_id]
+
+            # Any node can verify the agent→node binding
+            # (Simulates cross-node verification without needing node_b running)
+            from agt_node.agent_identity import AgentIdentity
+            is_valid = AgentIdentity.verify_ownership(
+                agent_ident.agent_id,
+                node_a.identity.public_key_hex,
+                agent_ident.creation_index,
+            )
+            assert is_valid, "Any node should be able to verify agent ownership"
+
+            # Wrong public key fails
+            from agt_node.identity import KeyPair
+            random_key = KeyPair.generate()
+            is_fake = AgentIdentity.verify_ownership(
+                agent_ident.agent_id,
+                random_key.public_key_hex,
+                agent_ident.creation_index,
+            )
+            assert not is_fake, "Wrong public key should fail verification"
+
+            await node_a.stop()
+
+    @pytest.mark.asyncio
+    async def test_v02_anti_sybil_clean_node(self):
+        """A node running normally does not trigger anti-Sybil alerts"""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            node = AGTNode(
+                node_name="Clean Node",
+                port=19990,
+                host="127.0.0.1",
+                data_dir=tmpdir,
+            )
+            node.llm_client = E2EMockLLM()
+            await node.start()
+            node.create_agent(name="clean-agent")
+
+            # Run one cycle
+            await node.run_task_cycle()
+
+            # Should be clean (no rapid-fire, unique outputs)
+            stats = node.anti_sybil.stats()
+            assert stats["alerts_raised"] == 0, (
+                f"Clean node should not trigger Sybil alerts, got {stats['alerts_raised']}"
+            )
+
+            await node.stop()
