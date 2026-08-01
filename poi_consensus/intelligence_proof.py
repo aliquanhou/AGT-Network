@@ -145,6 +145,9 @@ class IntelligenceProof:
     validator_signature: str = ""  # Ed25519 hex signature of proof_hash
     validator_public_key_hex: str = ""  # Validator's public key for verification
 
+    # v0.36.4: LLM usage tracking
+    llm_usage: dict = field(default_factory=dict)  # {total_tokens, total_cost, provider}
+
     # Timestamps
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -192,6 +195,7 @@ class IntelligenceProof:
             "content_hash": self.compute_hash(),
             "validator_signature": self.validator_signature,
             "validator_public_key_hex": self.validator_public_key_hex,
+            "llm_usage": self.llm_usage,
         }
 
     def compute_hash(self) -> str:
@@ -289,6 +293,7 @@ class IntelligenceProof:
             created_at=data.get("created_at", ""),
             validator_signature=data.get("validator_signature", ""),
             validator_public_key_hex=data.get("validator_public_key_hex", ""),
+            llm_usage=data.get("llm_usage", {}),
         )
 
     @classmethod
@@ -311,6 +316,7 @@ class IntelligenceProof:
         validator_feedback: str = "",
         validator_signature: str = "",
         validator_public_key_hex: str = "",
+        llm_usage: dict = None,
     ) -> "IntelligenceProof":
         """Factory: create a complete Intelligence Proof"""
         proof_id = f"poi-{uuid.uuid4().hex[:12]}"
@@ -340,6 +346,7 @@ class IntelligenceProof:
             validator_feedback=validator_feedback,
             validator_signature=validator_signature,
             validator_public_key_hex=validator_public_key_hex,
+            llm_usage=llm_usage or {},
         )
 
 

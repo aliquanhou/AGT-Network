@@ -84,6 +84,13 @@ async def run_single_node(args):
 
     if args.run_cycle:
         await node.run_economy_loop(continuous=False)
+        # Clean shutdown: cancel API server, then stop node
+        api_task.cancel()
+        try:
+            await api_task
+        except asyncio.CancelledError:
+            pass
+        await node.stop()
     elif args.continuous:
         print("  Continuous economy loop active. Press Ctrl+C to stop.")
         await node.run_economy_loop(continuous=True)

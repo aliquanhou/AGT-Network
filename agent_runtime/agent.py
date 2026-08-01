@@ -43,6 +43,7 @@ class TaskResult:
     started_at: str
     completed_at: str
     duration_seconds: float
+    llm_usage: dict = field(default_factory=dict)  # v0.36.4: {tokens, cost}
 
 
 class AGTAgent:
@@ -117,6 +118,15 @@ class AGTAgent:
         duration = (t1 - t0).total_seconds()
         completed_at = t1.isoformat()
 
+        # 2.5 Capture LLM usage (v0.36.4)
+        llm_usage = {}
+        if self.llm:
+            llm_usage = {
+                "total_tokens": getattr(self.llm, "total_tokens", 0),
+                "total_cost": round(getattr(self.llm, "total_cost", 0.0), 6),
+                "provider": getattr(self.llm, "model", "unknown"),
+            }
+
         # 3. Record in memory
         self._remember(
             "task",
@@ -134,6 +144,7 @@ class AGTAgent:
             started_at=started_at,
             completed_at=completed_at,
             duration_seconds=duration,
+            llm_usage=llm_usage,
         )
 
     def add_reward(self, amount: float):

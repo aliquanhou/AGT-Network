@@ -206,6 +206,43 @@ class AgentReputation:
                 return False
         return True
 
+    def apply_contribution_history(self, blocks: list) -> float:
+        """
+        v0.36.4: Rebuild reputation score from ledger block history.
+
+        Scans every block for this agent and replays reputation changes
+        to reconstruct the correct score after a restart.
+        """
+        total_delta = 0.0
+        for block in blocks:
+            if hasattr(block, 'contribution_proof') and block.contribution_proof:
+                score = block.contribution_proof.contribution_score
+                proof_id = block.contribution_proof.proof_id
+                task_id = block.task_id
+                if score >= 80:
+                    event = ReputationEvent.HIGH_QUALITY
+                elif score >= 50:
+                    event = ReputationEvent.NORMAL_COMPLETION
+                else:
+                    event = ReputationEvent.FAILED
+                delta = REPUTATION_DELTA.get(event, 0)
+                self.score = max(MIN_REPUTATION, min(MAX_REPUTATION, self.score + delta))
+                total_delta += delta
+                self.history.append(ReputationRecord(
+                    event=event,
+                    delta=delta,
+                    reason=f"Restored: {event.value} (score: {score:.1f})",
+                    task_id=task_id,
+                    proof_id=proof_id,
+                    new_score=self.score,
+                ))
+        if total_delta != 0:
+            logger.info(
+                f"[Reputation] Agent {self.agent_id} restored from {len(blocks)} blocks: "
+                f"score={self.score:.0f} ({self.level})"
+            )
+        return total_delta
+
     def get_recent_history(self, limit: int = 10) -> list[ReputationRecord]:
         return self.history[-limit:]
 

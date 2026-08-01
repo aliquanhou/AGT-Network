@@ -124,6 +124,8 @@ class AGTNode:
         # ---- State ----
         self._running = False
         self._data_dir = data_dir
+        self._last_heartbeat = None  # v0.36.4: online status tracking
+        self._task_completion_counts: dict[str, int] = {}  # v0.36.4: task repeat tracking
         Path(data_dir).mkdir(parents=True, exist_ok=True)
 
     # ============================================================
@@ -176,6 +178,9 @@ class AGTNode:
             except Exception as e:
                 logger.warning(f"[Node] LLM not available: {e}")
 
+        # 3.5 Restore agents from ledger history (v0.36.4: after LLM connect)
+        self._restore_agents_from_ledger()
+
         # 4. Load Genesis tasks into dispatcher
         self.dispatcher.add_tasks(get_genesis_tasks())
         logger.info(f"[Node] {len(get_genesis_tasks())} Genesis tasks loaded")
@@ -203,6 +208,43 @@ class AGTNode:
         except Exception:
             pass
         logger.info(f"[Node] AGT Node {self.node_id} STOPPED")
+
+    # ============================================================
+    # Agent Restoration (v0.36.4: cross-restart persistence)
+    # ============================================================
+
+    def _restore_agents_from_ledger(self):
+        """Restore agent entries from ledger block history after restart."""
+        seen_agents = set()
+        for block in self.ledger.blocks:
+            agent_id = getattr(block, 'agent_id', None)
+            if agent_id and agent_id not in seen_agents and block.index > 0:
+                seen_agents.add(agent_id)
+                if agent_id not in self.agents:
+                    agent = AGTAgent(
+                        agent_id=agent_id,
+                        llm_client=self.llm_client,  # Use current LLM connection
+                        name=agent_id,
+                        owner_node_id=self.node_id,
+                    )
+                    agent.tasks_completed = self.ledger.get_agent_task_count(agent_id)
+                    agent.total_reward = self.ledger.get_agent_total_credit(agent_id)
+                    self.agents[agent_id] = agent
+
+                    # Restore wallet
+                    wallet = CreditWallet(node_id=self.node_id, agent_id=agent_id)
+                    wallet.balance = self.ledger.get_agent_total_credit(agent_id)
+                    self.wallets[agent_id] = wallet
+
+                    # Restore reputation (rebuild from history)
+                    rep = AgentReputation(agent_id=agent_id)
+                    rep.apply_contribution_history(
+                        self.ledger.get_agent_blocks(agent_id)
+                    )
+                    self.reputations[agent_id] = rep
+
+                    logger.info(f"[Node] Agent restored from ledger: {agent_id} "
+                                f"(tasks={agent.tasks_completed}, balance={wallet.balance:.1f})")
 
     # ============================================================
     # Agent Management
@@ -301,6 +343,24 @@ class AGTNode:
             self.dispatcher.mark_validated(f"local-{task.id}")
             self.dispatcher.mark_rewarded(f"local-{task.id}")
 
+        # 5.5 Apply task repeat decay (v0.36.4: diminishing returns)
+        repeat_count = self._task_completion_counts.get(task.id, 0)
+        decay_multiplier = self._get_task_decay(task.id)
+        reward_credit = consensus_result.reward_credit
+        effective_reward = reward_credit * decay_multiplier
+        self._task_completion_counts[task.id] = repeat_count + 1
+        if decay_multiplier < 1.0:
+            logger.info(
+                f"[Node] Task {task.id} repeat #{repeat_count + 1}: "
+                f"decay={decay_multiplier:.0%}, effective={effective_reward:.1f} "
+                f"(full={reward_credit:.1f})"
+            )
+
+        # Store LLM usage on proof (v0.36.4)
+        consensus_result.proof.llm_usage = task_result.llm_usage
+        # Store effective reward for the callback (preserves protocol formula)
+        consensus_result.proof._effective_reward = effective_reward
+
         return {
             "task_id": task.id,
             "task_name": task.name,
@@ -308,9 +368,34 @@ class AGTNode:
             "execution_success": task_result.execution.success,
             "contribution_score": consensus_result.score.final_score,
             "confirmed": consensus_result.confirmed,
-            "reward_credit": consensus_result.reward_credit,
+            "reward_credit": effective_reward,
             "proof_id": consensus_result.proof.proof_id,
+            "llm_usage": task_result.llm_usage,
+            "task_repeat": repeat_count + 1,
+            "decay_multiplier": decay_multiplier,
         }
+
+    def _get_task_decay(self, task_id: str) -> float:
+        """
+        v0.36.4: Calculate decay multiplier for repeated task completion.
+
+        First run:  100%
+        Second:     70%
+        Third:      50%
+        Fourth+:    30%
+
+        The decay ensures agents are incentivized to explore new tasks
+        rather than farming the same task indefinitely.
+        """
+        count = self._task_completion_counts.get(task_id, 0)
+        if count == 0:
+            return 1.0
+        elif count == 1:
+            return 0.7
+        elif count == 2:
+            return 0.5
+        else:
+            return 0.3
 
     # ============================================================
     # P2P Event Handlers
@@ -360,11 +445,13 @@ class AGTNode:
         )
 
         # Record in Intelligence Ledger (with supply guard)
+        # v0.36.4: use effective reward (after task repeat decay)
+        effective_reward = getattr(proof, '_effective_reward', proof.agt_credit)
         try:
             self.ledger.record_contribution(
                 proof=proof,
                 reputation_change=rep_delta,
-                reward_credit=proof.agt_credit,
+                reward_credit=effective_reward,
                 node_id=self.node_id,
                 agent_id=agent_id,
             )

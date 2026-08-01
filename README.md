@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v0.36.3-blue" alt="Version">
+  <img src="https://img.shields.io/badge/version-v0.36.4-blue" alt="Version">
   <img src="https://img.shields.io/badge/tests-269%2F269%20passing-brightgreen" alt="Tests">
   <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
@@ -212,6 +212,7 @@ AGT-Network/
 | v0.2 | Trust | ✅ | Ed25519 Identity + Proof Signatures (177 tests) |
 | v0.3 | Autonomy | ✅ | Impact Oracle + Marketplace + Protocol Fee (269 tests) |
 | v0.35 | Public | 📋 | One-click node + SDK + Docker |
+| v0.36.4 | UX | ✅ | Agent persistence + LLM cost + Task decay + Heartbeat |
 | v0.5 | Network | 🔮 | libp2p P2P upgrade |
 | v1.0 | Protocol | 🔮 | On-chain settlement + DAO |
 

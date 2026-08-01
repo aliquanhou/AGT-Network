@@ -32,6 +32,7 @@ class NodeStatusOut(BaseModel):
     tasks_completed: int = 0
     total_credit: float = 0.0
     reputation: float = 100.0
+    last_heartbeat: str = ""  # v0.36.4: ISO timestamp of last activity
 
 
 class AgentOut(BaseModel):
@@ -147,6 +148,9 @@ class AGTAPIServer:
                     node_name="AGT Node",
                     online=True,
                 )
+            # v0.36.4: update heartbeat on status check
+            from datetime import datetime, timezone
+            self.node._last_heartbeat = datetime.now(timezone.utc).isoformat()
             return NodeStatusOut(
                 node_id=self.node.node_id,
                 node_name=self.node.node_name,
@@ -162,7 +166,17 @@ class AGTAPIServer:
                     if self.node.agents and self.node.reputations
                     else 100.0
                 ),
+                last_heartbeat=self.node._last_heartbeat or "",
             )
+
+        @app.get("/api/node/heartbeat")
+        async def node_heartbeat():
+            """v0.36.4: Heartbeat endpoint for node health monitoring"""
+            from datetime import datetime, timezone
+            if self.node:
+                self.node._last_heartbeat = datetime.now(timezone.utc).isoformat()
+                return {"status": "ok", "last_heartbeat": self.node._last_heartbeat}
+            return {"status": "no_node"}
 
         # ---- Agents ----
 
@@ -335,6 +349,9 @@ class AGTAPIServer:
                     await ws.receive_text()
             except WebSocketDisconnect:
                 self._ws_clients.remove(ws)
+            except asyncio.CancelledError:
+                # Server shutting down — clean exit
+                pass
             except Exception:
                 if ws in self._ws_clients:
                     self._ws_clients.remove(ws)

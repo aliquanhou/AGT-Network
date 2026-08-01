@@ -360,6 +360,14 @@ class IntelligenceLedger:
         """Count of contributions by an agent"""
         return len(self.get_blocks_by_agent(agent_id))
 
+    def get_agent_task_count(self, agent_id: str) -> int:
+        """Alias for get_agent_total_contributions (used by node restore)"""
+        return self.get_agent_total_contributions(agent_id)
+
+    def get_agent_blocks(self, agent_id: str) -> list[LedgerBlock]:
+        """Get all blocks for an agent (alias for restore)"""
+        return self.get_blocks_by_agent(agent_id)
+
     def get_latest_blocks(self, limit: int = 20) -> list[LedgerBlock]:
         """Get the most recent blocks"""
         return self.blocks[-limit:]

@@ -49,6 +49,22 @@ class LLMResponse:
 class LLMClient(ABC):
     """Abstract LLM client"""
 
+    def __init__(self):
+        self.total_tokens: int = 0      # v0.36.4: cumulative token tracking
+        self.total_cost: float = 0.0    # v0.36.4: estimated cost in USD
+
+    def _track_usage(self, usage: dict, model: str = ""):
+        """Accumulate token usage and estimate cost (v0.36.4)"""
+        tokens = usage.get("total_tokens", 0)
+        self.total_tokens += tokens
+        cost = self._estimate_cost(usage, model)
+        self.total_cost += cost
+        return {"tokens": tokens, "cost": cost, "model": model}
+
+    def _estimate_cost(self, usage: dict, model: str = "") -> float:
+        """Estimate cost in USD. Override per provider."""
+        return 0.0
+
     @abstractmethod
     async def chat(
         self,
@@ -70,8 +86,12 @@ class DeepSeekClient(LLMClient):
 
     BASE_URL = "https://api.deepseek.com/v1"
     DEFAULT_MODEL = "deepseek-chat"
+    # DeepSeek pricing per 1M tokens (input / output)
+    PRICE_INPUT_PER_1M = 0.14
+    PRICE_OUTPUT_PER_1M = 0.28
 
     def __init__(self, api_key: str, model: str = None):
+        super().__init__()
         self.api_key = api_key
         self.model = model or self.DEFAULT_MODEL
         self._client = httpx.AsyncClient(
@@ -107,13 +127,22 @@ class DeepSeekClient(LLMClient):
         data = resp.json()
 
         choice = data["choices"][0]
+        usage = data.get("usage", {})
+        self._track_usage(usage, self.model)
         return LLMResponse(
             content=choice["message"]["content"],
             model=data.get("model", self.model),
-            usage=data.get("usage", {}),
+            usage=usage,
             finish_reason=choice.get("finish_reason", "stop"),
             raw=data,
         )
+
+    def _estimate_cost(self, usage: dict, model: str = "") -> float:
+        """DeepSeek pricing: $0.14/1M input, $0.28/1M output"""
+        prompt_tokens = usage.get("prompt_tokens", 0)
+        completion_tokens = usage.get("completion_tokens", 0)
+        return (prompt_tokens * self.PRICE_INPUT_PER_1M / 1_000_000 +
+                completion_tokens * self.PRICE_OUTPUT_PER_1M / 1_000_000)
 
 
 # ============================================================
