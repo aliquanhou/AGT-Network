@@ -109,15 +109,34 @@ class ConsensusEngine:
         import uuid
 
         # Step 1: Validate
-        validation = await self.validator.validate(
-            task=task,
-            worker_node_id=worker_node_id,
-            worker_agent_id=agent_id,
-            result=result,
-            assignment_id=assignment_id,
-            validator_agent_id=validator_agent_id,
-            llm_client=llm_client,
-        )
+        # v0.1: For single-node testing, allow same-node validation
+        # by creating a virtual validator identity when needed
+        if worker_node_id == self.node_id:
+            logger.info(
+                "[Consensus] v0.1 single-node mode: "
+                "validator runs on same node as worker (local testing)"
+            )
+            # Create a virtual validator for same-node testing
+            virtual_validator = Validator(node_id=f"{self.node_id}-validator")
+            validation = await virtual_validator.validate(
+                task=task,
+                worker_node_id=worker_node_id,
+                worker_agent_id=agent_id,
+                result=result,
+                assignment_id=assignment_id,
+                validator_agent_id=validator_agent_id,
+                llm_client=llm_client,
+            )
+        else:
+            validation = await self.validator.validate(
+                task=task,
+                worker_node_id=worker_node_id,
+                worker_agent_id=agent_id,
+                result=result,
+                assignment_id=assignment_id,
+                validator_agent_id=validator_agent_id,
+                llm_client=llm_client,
+            )
 
         if not validation.passed:
             logger.info(

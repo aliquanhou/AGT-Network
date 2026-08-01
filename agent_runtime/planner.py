@@ -149,7 +149,7 @@ class Planner:
                     step_id="step-3",
                     action="Format and verify the output",
                     tool="text_formatter",
-                    tool_params={"format_type": "markdown"},
+                    tool_params={"text": "Task executed successfully.", "format_type": "markdown"},
                     expected_output="Formatted, verified output",
                 ),
             ],

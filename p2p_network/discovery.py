@@ -219,7 +219,9 @@ class Discovery:
                 peer.is_active = True
                 logger.info(f"[Discovery] 节点恢复在线: {peer_id}")
                 if self._on_peer_discovered:
-                    self._on_peer_discovered(peer)
+                    result = self._on_peer_discovered(peer)
+                    if asyncio.iscoroutine(result):
+                        await result
         else:
             # 新节点
             peer = PeerInfo(
@@ -232,7 +234,9 @@ class Discovery:
             self._peers[peer_id] = peer
             logger.info(f"[Discovery] 发现新节点: {peer_id} @ {peer.host}:{peer.port}")
             if self._on_peer_discovered:
-                self._on_peer_discovered(peer)
+                result = self._on_peer_discovered(peer)
+                if asyncio.iscoroutine(result):
+                    await result
 
     async def _cleanup_loop(self):
         """清理超时节点"""
@@ -245,7 +249,9 @@ class Discovery:
                     expired.append(node_id)
                     logger.info(f"[Discovery] 节点离线: {node_id}")
                     if self._on_peer_lost:
-                        self._on_peer_lost(peer)
+                        result = self._on_peer_lost(peer)
+                        if asyncio.iscoroutine(result):
+                            await result
 
             # 可选：彻底删除过久的离线节点
             for node_id in expired:
