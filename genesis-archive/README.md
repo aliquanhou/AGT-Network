@@ -17,7 +17,8 @@
 | [GENESIS-RECORD.json](GENESIS-RECORD.json) | AGT-GENESIS-000001 — the first Intelligence Record |
 | [DECISION_LOG.md](DECISION_LOG.md) | Every major design decision with context, reasoning, and impact |
 | [GENESIS-REVIEW.md](GENESIS-REVIEW.md) | Design freeze review — 3 core questions resolved |
-| [TRUST-LAYER-v0.2.md](TRUST-LAYER-v0.2.md) | v0.2 Trust Layer design outline (not yet implemented) |
+| [TRUST-LAYER-v0.2.md](TRUST-LAYER-v0.2.md) | v0.2 Trust Layer design outline (IMPLEMENTED) |
+| [AUTONOMOUS-ECONOMY-v0.3.md](AUTONOMOUS-ECONOMY-v0.3.md) | v0.3 Autonomous Economy Protocol Specification (DESIGN PHASE) |
 
 ---
 

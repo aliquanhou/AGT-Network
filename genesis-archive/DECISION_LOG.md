@@ -79,14 +79,72 @@ agent_id = SHA-256(node_public_key + agent_creation_index)[:16]
 
 **Approved**: Genesis Team
 
+### Decision #12: v0.2 Complete — Trust Layer Founded, Enter Design Phase
+
+**Context**: v0.2 Trust Layer implemented in 4 steps: Identity → Signature → Verification + Reputation + Anti-Sybil → E2E. 177 tests pass. All 5 audit findings resolved.
+
+**Decision**: FREEZE v0.2 codebase. DO NOT proceed to v0.3 coding. First, write the Autonomous Economy Protocol Specification.
+
+**Reasoning**:
+- "v0.2 是信任根。v0.3 是经济生命。这里设计错误，后面所有东西都会受到影响。"
+- The jump from "trust verification" to "autonomous economy" is not incremental — it's a protocol behavior change
+- A specification-first approach prevents the "AI self-entertainment economy" anti-pattern
+- Six core design questions must be resolved before any code is written
+
+**Approved**: Genesis Team
+
+**Impact**: v0.3 enters SPECIFICATION PHASE. No code until the Autonomous Economy Protocol Specification is reviewed and approved.
+
+### Decision #13: Impact Score Must Supplement Completion Score
+
+**Context**: Current reputation model rewards task completion. But a task used by 1M people should be worth more than a task used by 1 person.
+
+**Decision**: v0.3 will introduce **Impact Score** as a separate, time-decaying metric:
+```
+Impact Score = UsageCount × UsageQuality × TimeDecay
+```
+- UsageCount: how many agents/users use the output
+- UsageQuality: how transformative the usage is (adoption vs. passing reference)
+- TimeDecay: recent impact > old impact (preventing reputation from becoming a retirement asset)
+
+**Reasoning**:
+- "信誉不能只奖励'完成'。否则 AGT 会变成'制造任务机器'而不是'创造价值机器'。"
+- Completion proves ability. Impact proves value. Both matter.
+- Impact is measured downstream — after the contribution is published and used
+
+**Approved**: Genesis Team
+
+**Impact**: v0.3 PoI formula will be extended to include Impact factor. v0.2 scores remain valid (backward compatible).
+
+### Decision #14: The Founder Role Is "Genesis Architect", Not "Key Holder"
+
+**Context**: Multiple decisions have reinforced that Genesis Identity is NOT an admin role. The name should reflect this.
+
+**Decision**: The official designation for the human founder in all AGT documentation is:
+
+> **Genesis Architect** — the human who initiated the first Agent Economy Protocol specification.
+
+Not: admin, owner, key holder, super-user, or privileged account.
+
+**Reasoning**:
+- "不是'拥有钥匙的人'。而是创造第一套 AI贡献证明经济协议的人。"
+- The Genesis Architect designed the protocol. The protocol now runs independently.
+- Attribution without control — the founding principle of AGT
+
+**Approved**: Genesis Team
+
+**Impact**: All future documentation uses "Genesis Architect" for the human founder role.
+
 ---
 
-## Design Principles (Updated for v0.2)
+## Design Principles (Updated for v0.3 Direction)
 
 1. **Proof Before Token** — unchanged
 2. **Record Before Reward** — unchanged
-3. **Verify Before Trust** — strengthened: cryptographic verification replaces heuristic trust
+3. **Verify Before Trust** — strengthened: cryptographic verification
 4. **Constrain Before Scale** — unchanged
-5. **Preserve the Origin** — strengthened: genesis proof in same ledger as all contributions
-6. **Identity Is Earned** — reputation is non-transferable, proof-backed, cryptographically bound
+5. **Preserve the Origin** — Genesis Architect attribution, not admin control
+6. **Identity Is Earned** — Soulbound reputation, proof-backed, non-transferable
 7. **Trust Is Verifiable** — any node can independently verify any proof's signature
+8. **Impact Over Activity** — value is measured by downstream impact, not task count
+9. **Specification Before Implementation** — design the economy before coding it
