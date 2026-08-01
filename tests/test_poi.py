@@ -435,14 +435,233 @@ class TestIntelligenceLedger:
         total = ledger.get_agent_total_credit("agent-b")
         assert total > 0
 
-    def test_ledger_persist(self, ledger):
-        """Ledger saves and can be re-loaded (metadata)"""
+    # ============================================================
+    # P0-1: Full Block Persistence
+    # ============================================================
+
+    def test_full_persistence_roundtrip(self, tmp_path):
+        """Blocks persist to disk and are fully restorable.
+
+        Flow: create blocks → save → new ledger → load → same blocks → chain verified
+        """
+        # Phase 1: Create ledger with contributions
+        ledger1 = IntelligenceLedger(data_dir=str(tmp_path))
+        ledger1.create_genesis_block("founder")
+
+        proof1 = IntelligenceProof.create(
+            task_id="genesis-001", task_name="Task 1",
+            agent_id="agent-a", node_id="node-a",
+            contribution_type="code_optimization",
+            difficulty=3, quality_score=85,
+            verification_score=80, innovation_score=70,
+        )
+        block1 = ledger1.record_contribution(
+            proof=proof1, reputation_change=+5,
+            reward_credit=proof1.agt_credit,
+            node_id="node-a", agent_id="agent-a",
+        )
+
+        proof2 = IntelligenceProof.create(
+            task_id="genesis-002", task_name="Task 2",
+            agent_id="agent-b", node_id="node-b",
+            contribution_type="knowledge_organization",
+            difficulty=4, quality_score=90,
+            verification_score=85, innovation_score=75,
+        )
+        block2 = ledger1.record_contribution(
+            proof=proof2, reputation_change=+5,
+            reward_credit=proof2.agt_credit,
+            node_id="node-b", agent_id="agent-b",
+        )
+
+        assert ledger1.verify_chain()
+
+        # Phase 2: Create a fresh ledger pointing at the same data dir
+        ledger2 = IntelligenceLedger(data_dir=str(tmp_path))
+        chain_ok = ledger2.load()
+        assert chain_ok, "Chain integrity must survive restart"
+
+        # Phase 3: Verify restored state
+        assert ledger2.total_contributions == 3  # genesis + 2 contributions
+        assert len(ledger2.blocks) == 3
+
+        # Block 0: genesis
+        assert ledger2.blocks[0].index == 0
+        assert ledger2.blocks[0].block_id == "blk-genesis-00000000"
+
+        # Block 1: matches block1
+        restored_b1 = ledger2.blocks[1]
+        assert restored_b1.block_id == block1.block_id
+        assert restored_b1.block_hash == block1.block_hash
+        assert restored_b1.reward_credit == block1.reward_credit
+        assert restored_b1.agent_id == "agent-a"
+        assert restored_b1.contribution_proof is not None
+        assert restored_b1.contribution_proof.proof_id == proof1.proof_id
+
+        # Block 2: matches block2
+        restored_b2 = ledger2.blocks[2]
+        assert restored_b2.block_hash == block2.block_hash
+        assert restored_b2.agent_id == "agent-b"
+
+        # Stats reconstructed correctly
+        assert ledger2.total_credit_issued == proof1.agt_credit + proof2.agt_credit
+
+        # Chain integrity verified
+        assert ledger2.verify_chain()
+
+    def test_persistence_rebuilds_chain_correctly(self, tmp_path):
+        """Each restored block must link to its predecessor via previous_hash"""
+        ledger1 = IntelligenceLedger(data_dir=str(tmp_path))
+        ledger1.create_genesis_block("founder")
+        for i in range(3):
+            proof = IntelligenceProof.create(
+                task_id=f"t{i}", task_name=f"Task {i}",
+                agent_id="agent-x", node_id="node-x",
+                contribution_type="analysis",
+                difficulty=3, quality_score=80,
+                verification_score=80, innovation_score=70,
+            )
+            ledger1.record_contribution(
+                proof=proof, reputation_change=1,
+                reward_credit=proof.agt_credit,
+                node_id="node-x", agent_id="agent-x",
+            )
+
+        ledger2 = IntelligenceLedger(data_dir=str(tmp_path))
+        ledger2.load()
+
+        # Verify every link in the chain
+        for i in range(1, len(ledger2.blocks)):
+            current = ledger2.blocks[i]
+            previous = ledger2.blocks[i - 1]
+            assert current.previous_hash == previous.block_hash, (
+                f"Block {i} previous_hash doesn't match block {i-1} block_hash"
+            )
+            assert current.index == i
+
+        assert ledger2.verify_chain()
+
+    def test_persistence_empty_ledger(self, tmp_path):
+        """A fresh ledger with no blocks file loads as empty"""
+        ledger = IntelligenceLedger(data_dir=str(tmp_path))
+        result = ledger.load()
+        assert result is True
+        assert len(ledger.blocks) == 0
+        assert ledger.total_contributions == 0
+
+    # ============================================================
+    # P0-2: Supply Guard
+    # ============================================================
+
+    def test_supply_guard_allows_normal_reward(self, ledger):
+        """Reward within supply limit succeeds"""
         ledger.create_genesis_block("founder")
-        ledger.save()
-        # Load a new ledger instance
-        new_ledger = IntelligenceLedger(data_dir=ledger.data_dir)
-        new_ledger.load()
-        assert new_ledger.total_contributions == 1
+        proof = IntelligenceProof.create(
+            task_id="t1", task_name="T1",
+            agent_id="agent-a", node_id="node-a",
+            contribution_type="analysis",
+            difficulty=3, quality_score=80,
+            verification_score=80, innovation_score=70,
+        )
+        # Should not raise
+        block = ledger.record_contribution(
+            proof=proof, reputation_change=1,
+            reward_credit=50.0,
+            node_id="node-a", agent_id="agent-a",
+        )
+        assert block is not None
+        assert ledger.total_credit_issued == 50.0
+
+    def test_supply_guard_rejects_excess(self, ledger):
+        """Reward exceeding max_supply raises ValueError"""
+        # Use a very small max_supply for testing
+        ledger.max_supply = 100.0
+        ledger.create_genesis_block("founder")
+
+        # Issue up to the limit
+        proof = IntelligenceProof.create(
+            task_id="t1", task_name="T1",
+            agent_id="agent-a", node_id="node-a",
+            contribution_type="analysis",
+            difficulty=3, quality_score=80,
+            verification_score=80, innovation_score=70,
+        )
+        ledger.record_contribution(
+            proof=proof, reputation_change=1,
+            reward_credit=90.0,  # Total: 90 / 100
+            node_id="node-a", agent_id="agent-a",
+        )
+        assert ledger.total_credit_issued == 90.0
+
+        # Try to issue 20 more → 110 exceeds 100
+        proof2 = IntelligenceProof.create(
+            task_id="t2", task_name="T2",
+            agent_id="agent-b", node_id="node-b",
+            contribution_type="analysis",
+            difficulty=3, quality_score=80,
+            verification_score=80, innovation_score=70,
+        )
+        with pytest.raises(ValueError, match="Supply guard"):
+            ledger.record_contribution(
+                proof=proof2, reputation_change=1,
+                reward_credit=20.0,
+                node_id="node-b", agent_id="agent-b",
+            )
+
+        # Total should still be 90.0 (rejected transaction)
+        assert ledger.total_credit_issued == 90.0
+
+    def test_supply_remaining(self, ledger):
+        """supply_remaining() reports correct value"""
+        ledger.max_supply = 1000.0
+        ledger.create_genesis_block("founder")
+
+        assert ledger.supply_remaining() == 1000.0
+
+        proof = IntelligenceProof.create(
+            task_id="t1", task_name="T1",
+            agent_id="agent-a", node_id="node-a",
+            contribution_type="analysis",
+            difficulty=3, quality_score=80,
+            verification_score=80, innovation_score=70,
+        )
+        ledger.record_contribution(
+            proof=proof, reputation_change=1,
+            reward_credit=300.0,
+            node_id="node-a", agent_id="agent-a",
+        )
+        assert ledger.supply_remaining() == 700.0
+        assert 30.0 <= ledger.supply_used_pct() <= 30.1
+
+    def test_block_immutability(self, ledger):
+        """A sealed block cannot have its hash modified"""
+        ledger.create_genesis_block("founder")
+        proof = IntelligenceProof.create(
+            task_id="t1", task_name="T1",
+            agent_id="agent-a", node_id="node-a",
+            contribution_type="analysis",
+            difficulty=3, quality_score=80,
+            verification_score=80, innovation_score=70,
+        )
+        block = ledger.record_contribution(
+            proof=proof, reputation_change=1,
+            reward_credit=10.0,
+            node_id="node-a", agent_id="agent-a",
+        )
+
+        # Trying to re-seal should fail
+        with pytest.raises(ValueError, match="already sealed"):
+            block.seal()
+
+        # Trying to change the hash externally has no effect
+        # (the block is sealed but Python can't prevent attribute writes;
+        #  the ledger's verify_chain would catch this via compute_hash check)
+        original_hash = block.block_hash
+        block.block_hash = "tampered"
+        assert ledger.verify_chain() == False  # Tamper detected!
+
+        # Restore for clean state
+        block.block_hash = original_hash
 
 
 # ============================================================

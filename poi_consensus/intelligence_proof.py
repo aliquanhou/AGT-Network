@@ -49,9 +49,23 @@ class EvidenceItem:
     url: str = ""  # Optional external reference
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
+    def __post_init__(self):
+        """Normalize type to EvidenceType enum"""
+        if not isinstance(self.type, EvidenceType):
+            try:
+                self.type = EvidenceType(str(self.type))
+            except (ValueError, TypeError):
+                self.type = EvidenceType.ARTIFACT_HASH
+
+    def _etype_str(self) -> str:
+        """Safe type → string"""
+        if isinstance(self.type, EvidenceType):
+            return self.type.value
+        return str(self.type)
+
     def to_dict(self) -> dict:
         return {
-            "type": self.type.value,
+            "type": self._etype_str(),
             "description": self.description,
             "content_hash": self.content_hash,
             "url": self.url,
@@ -130,6 +144,22 @@ class IntelligenceProof:
     # Timestamps
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
+    def __post_init__(self):
+        """Normalize contribution_type to ContributionType enum"""
+        if not isinstance(self.contribution_type, ContributionType):
+            try:
+                self.contribution_type = ContributionType(str(self.contribution_type))
+            except (ValueError, TypeError):
+                self.contribution_type = ContributionType.ANALYSIS
+
+    def _ct_str(self) -> str:
+        """Safe contribution_type → string (handles both enum and raw string)"""
+        if isinstance(self.contribution_type, ContributionType):
+            return self.contribution_type.value
+        if isinstance(self.contribution_type, str):
+            return self.contribution_type
+        return str(self.contribution_type)
+
     def to_dict(self) -> dict:
         return {
             "proof_id": self.proof_id,
@@ -137,7 +167,7 @@ class IntelligenceProof:
             "task_name": self.task_name,
             "agent_id": self.agent_id,
             "node_id": self.node_id,
-            "contribution_type": self.contribution_type.value,
+            "contribution_type": self._ct_str(),
             "difficulty": self.difficulty,
             "scores": {
                 "quality": self.quality_score,
@@ -165,13 +195,59 @@ class IntelligenceProof:
             "task_id": self.task_id,
             "agent_id": self.agent_id,
             "node_id": self.node_id,
-            "contribution_type": self.contribution_type.value,
+            "contribution_type": self._ct_str(),
             "contribution_score": self.contribution_score,
             "evidence_hashes": [e.content_hash for e in self.evidence],
             "created_at": self.created_at,
         }
         serialized = json.dumps(core, sort_keys=True, ensure_ascii=False)
         return hashlib.sha256(serialized.encode()).hexdigest()
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "IntelligenceProof":
+        """Restore an IntelligenceProof from its dict representation"""
+        evidence = []
+        for e in data.get("evidence", []):
+            try:
+                etype = EvidenceType(e["type"])
+            except (ValueError, KeyError):
+                etype = EvidenceType.ARTIFACT_HASH
+            evidence.append(EvidenceItem(
+                type=etype,
+                description=e.get("description", ""),
+                content_hash=e.get("content_hash", ""),
+                url=e.get("url", ""),
+                timestamp=e.get("timestamp", ""),
+            ))
+
+        ct = ContributionType.ANALYSIS
+        try:
+            ct = ContributionType(data.get("contribution_type", "analysis"))
+        except ValueError:
+            pass
+
+        validator = data.get("validator", {})
+        scores = data.get("scores", {})
+
+        return cls(
+            proof_id=data.get("proof_id", ""),
+            task_id=data.get("task_id", ""),
+            task_name=data.get("task_name", ""),
+            agent_id=data.get("agent_id", ""),
+            node_id=data.get("node_id", ""),
+            contribution_type=ct,
+            difficulty=data.get("difficulty", 1),
+            quality_score=scores.get("quality", 0.0),
+            verification_score=scores.get("verification", 0.0),
+            innovation_score=scores.get("innovation", 0.0),
+            task_value=data.get("task_value", 10.0),
+            task_source=data.get("task_source", "genesis"),
+            evidence=evidence,
+            validator_node_id=validator.get("node_id", ""),
+            validator_agent_id=validator.get("agent_id", ""),
+            validator_feedback=validator.get("feedback", ""),
+            created_at=data.get("created_at", ""),
+        )
 
     @classmethod
     def create(

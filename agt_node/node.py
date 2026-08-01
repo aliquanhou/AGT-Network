@@ -334,14 +334,20 @@ class AGTNode:
             proof.contribution_score, proof.task_id
         )
 
-        # Record in Intelligence Ledger
-        self.ledger.record_contribution(
-            proof=proof,
-            reputation_change=rep_delta,
-            reward_credit=proof.agt_credit,
-            node_id=self.node_id,
-            agent_id=agent_id,
-        )
+        # Record in Intelligence Ledger (with supply guard)
+        try:
+            self.ledger.record_contribution(
+                proof=proof,
+                reputation_change=rep_delta,
+                reward_credit=proof.agt_credit,
+                node_id=self.node_id,
+                agent_id=agent_id,
+            )
+        except ValueError as e:
+            logger.warning(
+                f"[Node] Contribution REJECTED by supply guard: {e}"
+            )
+            return  # Don't record — ledger rejected it
 
         logger.info(
             f"[Node] Contribution recorded: {proof.proof_id} "
